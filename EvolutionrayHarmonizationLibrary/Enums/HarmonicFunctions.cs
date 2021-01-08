@@ -11,12 +11,12 @@ namespace EvolutionrayHarmonizationLibrary.Enums
     /// </summary>
     public enum HarmonicFunctions
     {
-        I,
-        II, 
-        III, 
-        IV, 
-        V, 
-        VI,
-        VII
+        I   = 1,
+        II  = 2, 
+        III = 3, 
+        IV  = 4, 
+        V   = 5, 
+        VI  = 6,
+        VII = 7
     }
 }

@@ -7,7 +7,11 @@ using System.Threading.Tasks;
 namespace EvolutionrayHarmonizationLibrary.Enums
 {
     /// <summary>
-    /// Możliwe klucze kompozycji z przypisanym kodowaniem
+    /// Możliwe klucze kompozycji z przypisanym kodowaniem:
+    /// - pierwsza liczba - krzyżyki/bemole przy kluczu,
+    /// - druga liczba - liczba znaków przykluczowych,
+    /// - trzecia liczba - dur/moll,
+    /// - czwarta liczba - numer pierwszego dźwięku (Pitches) w gamie.
     /// </summary>
     public enum Keys
     {

@@ -11,11 +11,11 @@ namespace EvolutionrayHarmonizationLibrary.Enums
     /// </summary>
     public enum Modifiers
     {
-        Sharp,
-        DoubleSharp,
-        Flat,
-        DoubleFlat,
-        Natural,
-        None
+        DoubleFlat = 0,
+        Flat = 1,
+        Natural = 2,
+        None = 3,
+        Sharp = 4,
+        DoubleSharp = 5
     }
 }

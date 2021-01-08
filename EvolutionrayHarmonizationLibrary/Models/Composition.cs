@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EvolutionrayHarmonizationLibrary.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Klucz, w jakim utworzona jest kompozycja
         /// </summary>
-        public Key Key { get; set; }
+        public Keys Key { get; set; }
 
         /// <summary>
         /// Lista linii melodycznych kompozycji

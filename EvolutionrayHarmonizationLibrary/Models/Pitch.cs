@@ -1,6 +1,8 @@
 ﻿using EvolutionrayHarmonizationLibrary.Enums;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace EvolutionrayHarmonizationLibrary.Models
@@ -10,6 +12,11 @@ namespace EvolutionrayHarmonizationLibrary.Models
     /// </summary>
     public class Pitch
     {
+        public readonly static int[] pitchesValues = Enum.GetValues(typeof(Pitches)).Cast<int>().ToArray();
+        public readonly static int pitchesCount = pitchesValues.Length;
+        public readonly static int minPitchValue = pitchesValues.Min();
+        public readonly static int maxPitchValue = pitchesValues.Max();
+
         /// <summary>
         /// Wysokość dźwięku bez modyfikatora
         /// </summary>
@@ -24,6 +31,5 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// Numer oktawy, w której dźwięk się znajduje
         /// </summary>
         public int? Octave { get; set; }
-
     }
 }
