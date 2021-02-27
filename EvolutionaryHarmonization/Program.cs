@@ -9,8 +9,12 @@ namespace EvolutionaryHarmonization
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            BaseComposition baseComposition = BaseComposition.ReadFromFile("testFile.json");
+            Random random = new Random();
+            Console.WriteLine(random.Next(0, 2));
+            Console.WriteLine(random.Next(0, 2));
+            Console.WriteLine(random.Next(0, 2));
+            Console.WriteLine(random.Next(0, 2));
+            Console.WriteLine(random.Next(0, 2));
             //BaseComposition baseComposition = new BaseComposition();
             //baseComposition.Key = Keys.C;
             //baseComposition.PitchesAndFunctions = new List<(Pitch, HarmonicFunction)>();

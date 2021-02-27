@@ -41,6 +41,14 @@ namespace EvolutionrayHarmonizationLibrary.Models
             return new List<Pitch>() { firstPitch, secondPitch, thridPitch };
         }
 
+        public HarmonicFunction Copy()
+        {
+            return new HarmonicFunction
+            {
+                Function = Function
+            };
+        }
+
         private Pitch ApplyKeySigns(int pitchNumber, List<(Pitches, Modifiers)> keySigns)
         {
             int modifierIndex = keySigns.FindIndex(x => (int)x.Item1 == pitchNumber);

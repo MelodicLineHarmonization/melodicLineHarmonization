@@ -19,7 +19,7 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
         };
 
 
-        public static (List<(Pitches, Modifiers)>, bool isMoll, Pitches firstPitch) KeyToSigns(Keys key)
+        public static (List<(Pitches, Modifiers)> signs, bool isMoll, Pitches firstPitch) KeyToSigns(Keys key)
         {
             (int signsType, int signsCount, bool isMoll, int firstPichNumber) = GetKeyValues(key);
             List<(Pitches, Modifiers)> signs = new List<(Pitches, Modifiers)>();

@@ -1,4 +1,5 @@
 ﻿using EvolutionrayHarmonizationLibrary.Enums;
+using EvolutionrayHarmonizationLibrary.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,5 +32,40 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// Numer oktawy, w której dźwięk się znajduje
         /// </summary>
         public int? Octave { get; set; }
+
+
+        public Pitch Copy()
+        {
+            return new Pitch
+            {
+                PitchValue = PitchValue,
+                Modifier = Modifier,
+                Octave = Octave
+            };
+        }
+
+        public static Pitch GetRandom(int minOctave, int maxOctave)
+        {
+            Pitch p = new Pitch
+            {
+                Octave = RandomSingleton.Next(minOctave, maxOctave + 1),
+                PitchValue = (Pitches)pitchesValues[RandomSingleton.Next(0, pitchesCount)],
+                Modifier = Modifiers.None
+            };
+
+            return p;
+        }
+
+        public void ToKey(Keys key)
+        {
+            (List<(Pitches, Modifiers)> signs, _, _) = KeyConverter.KeyToSigns(key);
+
+            foreach ((Pitches, Modifiers) sign in signs)
+                if (sign.Item1 == PitchValue)
+                {
+                    Modifier = sign.Item2;
+                    break;
+                }
+        }
     }
 }
