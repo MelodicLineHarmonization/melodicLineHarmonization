@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Lista kolejnych nut w linii melodycznej
         /// </summary>
+        [JsonProperty]
         private readonly List<Pitch> pitches;
 
         /// <summary>

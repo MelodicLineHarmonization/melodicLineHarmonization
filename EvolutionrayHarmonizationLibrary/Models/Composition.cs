@@ -75,5 +75,11 @@ namespace EvolutionrayHarmonizationLibrary.Models
             
             return composition;
         }
+
+        public static Composition ReadFromFile(string filePath)
+        {
+            string serializedClass = File.ReadAllText(filePath);
+            return JsonConvert.DeserializeObject<Composition>(serializedClass);
+        }
     }
 }
