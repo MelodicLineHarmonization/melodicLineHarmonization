@@ -21,11 +21,27 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Lista linii melodycznych kompozycji
         /// </summary>
-        public List<MelodicLine> MelodicLines { get; set; }
+        public List<MelodicLine> MelodicLines { get; init; }
 
         /// <summary>
         /// Lista zadanych funkcji
         /// </summary>
-        public List<HarmonicFunction> Functions { get; set; } 
+        public List<HarmonicFunction> Functions { get; init; } 
+
+        public Composition(BaseComposition baseComposition)
+        {
+            Key = baseComposition.Key;
+            List<Pitch> pitches = new List<Pitch>();
+            MelodicLines = new List<MelodicLine>();
+            Functions = new List<HarmonicFunction>();
+
+            foreach((Pitch, HarmonicFunction) el in baseComposition.PitchesAndFunctions)
+            {
+                pitches.Add(el.Item1);
+                Functions.Add(el.Item2);
+            }
+
+            MelodicLines.Add(new MelodicLine { IsModifiable = false, Pitches = pitches });
+        }
     }
 }

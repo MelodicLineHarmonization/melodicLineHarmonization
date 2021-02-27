@@ -22,7 +22,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Lista dźwięków najwyższej linii melodycznej wraz z funkcjami
         /// </summary>
-        public List<(Pitch, HarmonicFunction)> MelodicLines { get; set; }
+        public List<(Pitch, HarmonicFunction)> PitchesAndFunctions { get; set; }
 
         public void SaveToFile(string filePath)
         {
