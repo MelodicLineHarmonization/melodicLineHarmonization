@@ -13,6 +13,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
     /// </summary>
     public class Pitch
     {
+        public readonly static int octaveSemitones = 12;
         public readonly static int[] pitchesValues = Enum.GetValues(typeof(Pitches)).Cast<int>().ToArray();
         public readonly static int pitchesCount = pitchesValues.Length;
         public readonly static int minPitchValue = pitchesValues.Min();
@@ -66,6 +67,48 @@ namespace EvolutionrayHarmonizationLibrary.Models
                     Modifier = sign.Item2;
                     break;
                 }
+        }
+
+        /// <summary>
+        /// Zwraca odległość dwóch nut w półtonach.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns>Wartość większa od 0 oznacza, że nuta a jest wyżej od b, wartość mniejsza od zera oznacza, że nuta a jest niżej od b.</returns>
+        public static int GetPitchesDifferenceInSemitones(Pitch a, Pitch b)
+        {
+            int firstPitchAbsoluteValue = GetPitchAbsoluteSemintones(a);
+            int secondPitchAbsoluteValue = GetPitchAbsoluteSemintones(b);
+
+            return firstPitchAbsoluteValue - secondPitchAbsoluteValue;
+        }
+
+        private static int GetPitchAbsoluteSemintones(Pitch a)
+        {
+            int pitchOctaveSemitones = a.Octave.Value * octaveSemitones;
+            int pitchValueSemitons = (int)a.PitchValue * 2;
+            if (a.PitchValue > Pitches.E)
+                pitchValueSemitons -= 1;
+
+            int modifierSemitons = GetModifierSemitoneValue(a);
+            return pitchOctaveSemitones + pitchValueSemitons + modifierSemitons;
+        }
+
+        private static int GetModifierSemitoneValue(Pitch a)
+        {
+            switch (a.Modifier)
+            {
+                case Modifiers.DoubleFlat:
+                    return -2;
+                case Modifiers.Flat:
+                    return -1;
+                case Modifiers.Sharp:
+                    return 1;
+                case Modifiers.DoubleSharp:
+                    return 2;
+                default:
+                    return 0;
+            }
         }
     }
 }

@@ -13,15 +13,20 @@ namespace EvolutionrayHarmonizationLibrary.Models
     public class MelodicLine
     {
         /// <summary>
-        /// Lista kolejnych nut w linii melodycznej
+        /// Lista kolejnych nut w linii melodycznej.
         /// </summary>
         [JsonProperty]
         private readonly List<Pitch> pitches;
 
         /// <summary>
-        /// Możliwość modyfikowania nut w linii melodycznej
+        /// Możliwość modyfikowania nut w linii melodycznej.
         /// </summary>
         public bool IsModifiable { get; init; }
+
+        /// <summary>
+        /// Liczba nut w linii melodycznej.
+        /// </summary>
+        public int Length => pitches.Count;
         
         public MelodicLine(List<Pitch> pitches, bool isModifiable)
         {

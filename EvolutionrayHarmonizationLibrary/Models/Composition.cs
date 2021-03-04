@@ -32,7 +32,12 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Lista zadanych funkcji
         /// </summary>
-        public List<HarmonicFunction> Functions { get; set; } 
+        public List<HarmonicFunction> Functions { get; set; }
+
+        /// <summary>
+        /// Długość kompozycji.
+        /// </summary>
+        public int Length => Functions.Count;
         
         
         public Composition() { }
@@ -52,6 +57,24 @@ namespace EvolutionrayHarmonizationLibrary.Models
             MelodicLines.Add(new MelodicLine(pitches, false));
         }
 
+
+        /// <summary>
+        /// Funkcja zwraca pojednyczy akord (pion) z kompozycji.
+        /// </summary>
+        /// <param name="index">Numer akordu w kompozycji liczony od 0.</param>
+        /// <returns></returns>
+        public Pitch[] GetChordAtPosition(int index)
+        {
+            if (index > Length)
+                throw new ArgumentException("Index too large.");
+
+            Pitch[] pitches = new Pitch[MelodicLines.Count];
+            for (int i = 0; i < MelodicLines.Count; i++)
+                pitches[i] = MelodicLines[i].GetPitch(i);
+
+            return pitches;
+        }
+
         public void SaveToFile(string filePath)
         {
             string serializedClass = JsonConvert.SerializeObject(this);
@@ -63,7 +86,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
             Composition composition = new Composition
             {
                 Key = Key,
-                MelodicLines = new List<MelodicLine>(4),
+                MelodicLines = new List<MelodicLine>(),
                 Functions = new List<HarmonicFunction>()
             };
 
