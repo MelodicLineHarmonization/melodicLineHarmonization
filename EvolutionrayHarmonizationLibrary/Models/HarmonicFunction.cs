@@ -16,15 +16,15 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Oznaczenie funkcji poprzez wskazanie stopnia, od którego jest budowana
         /// </summary>
-        public HarmonicFunctions Function { get; set; }
+        public Degree Function { get; set; }
 
 
         /// <summary>
         /// Bazowa funckja zwracająca trójdźwięk zbudowany na stopniu wskazanym przez funkcję.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">Klucz w jakim będzie rozpatrywana funkcja</param>
         /// <returns></returns>
-        public List<Pitch> GetPitchesInFunction(Keys key)
+        public List<PitchInChord> GetPitchesInFunction(Keys key)
         {
             (List<(Pitches, Modifiers)> keySigns, bool isMoll, Pitches firstPitchInKey) = KeyConverter.KeyToSigns(key);
             
@@ -36,9 +36,14 @@ namespace EvolutionrayHarmonizationLibrary.Models
             Pitch secondPitch = ApplyKeySigns(secondPitchNumber, keySigns);
             if (isMoll)
                 RaiseBySemitone(secondPitch);
-            Pitch thridPitch = ApplyKeySigns(thirdPitchNumber, keySigns);
+            Pitch thirdPitch = ApplyKeySigns(thirdPitchNumber, keySigns);
 
-            return new List<Pitch>() { firstPitch, secondPitch, thridPitch };
+            return new List<PitchInChord>
+            {
+                new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 2 },
+                new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
+                new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 2 },
+            };
         }
 
         public HarmonicFunction Copy()
@@ -55,7 +60,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
             return new Pitch()
             {
                 PitchValue = (Pitches)pitchNumber,
-                Octave = null,
+                Octave = 0,
                 Modifier = modifierIndex != -1 ? keySigns[modifierIndex].Item2 : Modifiers.None
             };
         }

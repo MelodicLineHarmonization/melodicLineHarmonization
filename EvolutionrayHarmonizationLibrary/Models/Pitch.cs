@@ -13,7 +13,6 @@ namespace EvolutionrayHarmonizationLibrary.Models
     /// </summary>
     public class Pitch
     {
-        public readonly static int octaveSemitones = 12;
         public readonly static int[] pitchesValues = Enum.GetValues(typeof(Pitches)).Cast<int>().ToArray();
         public readonly static int pitchesCount = pitchesValues.Length;
         public readonly static int minPitchValue = pitchesValues.Min();
@@ -30,9 +29,11 @@ namespace EvolutionrayHarmonizationLibrary.Models
         public Modifiers Modifier { get; set; }
 
         /// <summary>
-        /// Numer oktawy, w której dźwięk się znajduje
+        /// Numer oktawy, w której dźwięk się znajduje.
+        /// Oktawa subkontra oznaczona wartością 1.
+        /// Wartość 0 oznacza brak oktawy (dowolna oktawa).
         /// </summary>
-        public int? Octave { get; set; }
+        public int Octave { get; set; }
 
 
         public Pitch Copy()
@@ -69,46 +70,70 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 }
         }
 
-        /// <summary>
-        /// Zwraca odległość dwóch nut w półtonach.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns>Wartość większa od 0 oznacza, że nuta a jest wyżej od b, wartość mniejsza od zera oznacza, że nuta a jest niżej od b.</returns>
-        public static int GetPitchesDifferenceInSemitones(Pitch a, Pitch b)
+        public static bool operator >(Pitch left, Pitch right)
         {
-            int firstPitchAbsoluteValue = GetPitchAbsoluteSemintones(a);
-            int secondPitchAbsoluteValue = GetPitchAbsoluteSemintones(b);
+            int difference = Interval.GetPitchesDifferenceInSemitones(left, right);
+            if (difference > 0)
+                return true;
 
-            return firstPitchAbsoluteValue - secondPitchAbsoluteValue;
+            return false;
         }
 
-        private static int GetPitchAbsoluteSemintones(Pitch a)
+        public static bool operator <(Pitch left, Pitch right)
         {
-            int pitchOctaveSemitones = a.Octave.Value * octaveSemitones;
-            int pitchValueSemitons = (int)a.PitchValue * 2;
-            if (a.PitchValue > Pitches.E)
-                pitchValueSemitons -= 1;
+            int difference = Interval.GetPitchesDifferenceInSemitones(left, right);
+            if (difference < 0)
+                return true;
 
-            int modifierSemitons = GetModifierSemitoneValue(a);
-            return pitchOctaveSemitones + pitchValueSemitons + modifierSemitons;
+            return false;
         }
 
-        private static int GetModifierSemitoneValue(Pitch a)
+        public static bool operator ==(Pitch left, Pitch right)
         {
-            switch (a.Modifier)
+            return Interval.GetPitchesDifferenceInSemitones(left, right) == 0;
+        }
+
+        public static bool operator !=(Pitch left, Pitch right)
+        {
+            return !(left == right);
+        }
+
+        public static bool operator >=(Pitch left, Pitch right)
+        {
+            int difference = Interval.GetPitchesDifferenceInSemitones(left, right);
+            if (difference >= 0)
+                return true;
+
+            return false;
+        }
+
+        public static bool operator <=(Pitch left, Pitch right)
+        {
+            int difference = Interval.GetPitchesDifferenceInSemitones(left, right);
+            if (difference <= 0)
+                return true;
+
+            return false;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
             {
-                case Modifiers.DoubleFlat:
-                    return -2;
-                case Modifiers.Flat:
-                    return -1;
-                case Modifiers.Sharp:
-                    return 1;
-                case Modifiers.DoubleSharp:
-                    return 2;
-                default:
-                    return 0;
+                return true;
             }
+
+            if (ReferenceEquals(obj, null))
+            {
+                return false;
+            }
+
+            return this == (Pitch)obj;
+        }
+
+        public override int GetHashCode()
+        {
+            return Octave.GetHashCode() + Modifier.GetHashCode() + PitchValue.GetHashCode();
         }
     }
 }

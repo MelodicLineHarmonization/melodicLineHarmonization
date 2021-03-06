@@ -13,7 +13,7 @@ namespace EvolutionrayHarmonizationLibrary.Enums
     /// </summary>
     
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum HarmonicFunctions
+    public enum Degree
     {
         I   = 1,
         II  = 2, 

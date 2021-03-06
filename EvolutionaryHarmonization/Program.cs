@@ -1,4 +1,5 @@
 ﻿using EvolutionrayHarmonizationLibrary.Enums;
+using EvolutionrayHarmonizationLibrary.Helpers;
 using EvolutionrayHarmonizationLibrary.Models;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ namespace EvolutionaryHarmonization
                 PitchValue = Pitches.C,
                 Octave = 2
             };
-            Console.WriteLine(Pitch.GetPitchesDifferenceInSemitones(a, b) + " == -1");
+            Console.WriteLine(Interval.GetPitchesDifferenceInSemitones(a, b) + " == -1");
             a = new Pitch
             {
                 Modifier = Modifiers.None,
@@ -45,7 +46,7 @@ namespace EvolutionaryHarmonization
                 PitchValue = Pitches.H,
                 Octave = 2
             };
-            Console.WriteLine(Pitch.GetPitchesDifferenceInSemitones(a, b) + " == -23");
+            Console.WriteLine(Interval.GetPitchesDifferenceInSemitones(a, b) + " == -23");
             a = new Pitch
             {
                 Modifier = Modifiers.None,
@@ -58,7 +59,7 @@ namespace EvolutionaryHarmonization
                 PitchValue = Pitches.C,
                 Octave = 1
             };
-            Console.WriteLine(Pitch.GetPitchesDifferenceInSemitones(a, b) + " == 23");
+            Console.WriteLine(Interval.GetPitchesDifferenceInSemitones(a, b) + " == 23");
             a = new Pitch
             {
                 Modifier = Modifiers.DoubleFlat,
@@ -71,7 +72,7 @@ namespace EvolutionaryHarmonization
                 PitchValue = Pitches.H,
                 Octave = 1
             };
-            Console.WriteLine(Pitch.GetPitchesDifferenceInSemitones(a, b) + " == 1");
+            Console.WriteLine(Interval.GetPitchesDifferenceInSemitones(a, b) + " == 1");
         }
     }
 }

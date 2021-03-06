@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using EvolutionrayHarmonizationLibrary.Enums;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,14 @@ namespace EvolutionrayHarmonizationLibrary.Models
     /// </summary>
     public class MelodicLine
     {
+        public static readonly List<(Pitch Min, Pitch Max)> VoicesRange = new List<(Pitch Min, Pitch Max)>
+        {
+            (new Pitch { Modifier = Modifiers.None, Octave = 5, PitchValue = Pitches.C }, new Pitch { Modifier = Modifiers.None, Octave = 6, PitchValue = Pitches.G }),
+            (new Pitch { Modifier = Modifiers.None, Octave = 4, PitchValue = Pitches.G }, new Pitch { Modifier = Modifiers.None, Octave = 6, PitchValue = Pitches.C }),
+            (new Pitch { Modifier = Modifiers.None, Octave = 4, PitchValue = Pitches.C }, new Pitch { Modifier = Modifiers.None, Octave = 5, PitchValue = Pitches.G }),
+            (new Pitch { Modifier = Modifiers.None, Octave = 3, PitchValue = Pitches.E }, new Pitch { Modifier = Modifiers.None, Octave = 5, PitchValue = Pitches.C })
+        };   
+
         /// <summary>
         /// Lista kolejnych nut w linii melodycznej.
         /// </summary>
