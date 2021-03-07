@@ -21,6 +21,8 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
         public readonly static List<int> unisonoOctaveSemitones = new List<int> { 0 };
         public readonly static List<int> unisonoOctavePitchDistances = new List<int> { 0 };
 
+        public readonly static List<int> majorMinorSeptimeSemitones = new List<int> { 11, 10 };
+
 
 
         /// <summary>

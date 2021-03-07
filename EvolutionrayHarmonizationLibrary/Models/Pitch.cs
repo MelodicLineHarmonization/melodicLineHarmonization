@@ -70,6 +70,22 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 }
         }
 
+        public static int GetPitchValueDistance(Pitch first, Pitch second)
+        {
+            int[] octaves = new int[2] { first.Octave, second.Octave };
+            Pitches[] values = new Pitches[2] { first.PitchValue, second.PitchValue };
+
+            int higherIndex = octaves[0] > octaves[1] ? 0 : octaves[0] < octaves[1] ? 1 : values[0] > values[1] ? 0 : 1;
+            int lowerIndex = higherIndex == 0 ? 1 : 0;
+
+            int octaveDifference = octaves[higherIndex] - octaves[lowerIndex];
+            int pitchesDifference = values[higherIndex] - values[lowerIndex];
+            if (values[higherIndex] < values[lowerIndex])
+                pitchesDifference = pitchesCount + pitchesDifference;
+
+            return octaveDifference * pitchesCount + pitchesDifference;
+        }
+
         public static bool operator >(Pitch left, Pitch right)
         {
             int difference = Interval.GetPitchesDifferenceInSemitones(left, right);

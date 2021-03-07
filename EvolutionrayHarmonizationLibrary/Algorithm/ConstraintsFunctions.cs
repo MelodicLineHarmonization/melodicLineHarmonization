@@ -9,21 +9,21 @@ using System.Threading.Tasks;
 
 namespace EvolutionrayHarmonizationLibrary.Algorithm
 {
-    //TODO 5, 8, 9, 10.
+    //TODO 5.
     /// <summary>
     /// Klasa zawierająca funkcje określające ograniczenia (silne i słabe) narzucone na tworzoną kompozycję.
     /// Ograniczenia silne:
     /// 1. Brak krzyżowania głosów.
     /// 2. Tercja dominanty rozwiązana w górę. 
-    /// 3. Brak kwint równoległych.
+    /// 3. Brak kwint i oktaw (przeciw)równoległych.
     /// 4. Brak ruchu wszystkich głosów w jednym kierunku.
     /// 5. Brak skoków o interwały zwiększone.
     /// 6. Poprawne dźwięki w akordzie (poprawne zdwojenie, jeśli potrzebne).
     /// 7. Rozpiętość między głosami max oktawa -> nie dotyczy basu.
     /// Ograniczenia słabe:
-    /// 8. Brak semptymy w dwóch krokach (i w jednym).
+    /// 8. Brak semptymy w dwóch krokach (i w jednym). -> tutaj chyba jakiś wyjątek
     /// 9. Brak dwóch następujących akordów na kwincie.
-    /// 10. Zdwojenie kwinty w basie.
+    /// 10. Zdwojenie kwinty w basie, pierwszy i ostatni akord ze zdwojoną prymą.
     /// 11. Ruch przynajmniej 2 głosów.
     /// 12. Wszystkie głosy w dopuszczalnym zakresie.
     /// 13. Płynne prowadzenie głosów (alt, tenor), brak skoku o zbyt duży interwał.
@@ -79,7 +79,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <returns></returns>
         public static int ParallelQuints(Pitch[] chord, Pitch[] nextChord)
         {
-            return Interval.GetParallelIntervalsCount(chord, nextChord, Interval.quintSemitones, Interval.quintPitchDistances);
+            int quintSum = Interval.GetParallelIntervalsCount(chord, nextChord, Interval.quintSemitones, Interval.quintPitchDistances);
+            int octaveSum = Interval.GetParallelIntervalsCount(chord, nextChord, Interval.unisonoOctaveSemitones, Interval.unisonoOctavePitchDistances);
+            return quintSum + octaveSum;
         }
 
         /// <summary>
@@ -102,6 +104,35 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                 return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// 5. Funkcja zliczająca ruchy o interwały zwiększone w danej linii melodycznej.
+        /// </summary>
+        /// <param name="melodicLine"></param>
+        /// <returns></returns>
+        public static int AugumentedIntervalMoveCount(MelodicLine melodicLine)
+        {
+            int augumentedCount = 0;
+            for (int i = 0; i < melodicLine.Length; i++)
+            {
+                int semitonesMove = Interval.GetPitchesDifferenceInSemitones(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1));
+                int pitchValueDistanve = Pitch.GetPitchValueDistance(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1));
+
+                if (pitchValueDistanve > 2) // at least quart
+                {
+                    if (pitchValueDistanve * 2 <= semitonesMove)
+                        augumentedCount++;
+                }
+                else // maximum third
+                {
+                    if (pitchValueDistanve * 2 < semitonesMove)
+                        augumentedCount++;
+                }
+
+            }
+
+            return augumentedCount;
         }
 
         /// <summary>
@@ -147,6 +178,57 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             }
 
             return exceedingIntervals;
+        }
+
+        /// <summary>
+        /// 8. Funkcja sprawdzająca, czy w jednym (bądź dwóch) ruchach wykonany został skok o septymę.
+        /// </summary>
+        /// <returns>Zwraca liczbę skoków o septymę w jednym lub dwóch ruchach w całej linii melodycznej.</returns>
+        // TODO Istnieje wyjątek (jeden, rzadki) od tej reguły -> sprawdzić i dodać.
+        public static int SeptimeMove(MelodicLine melodicLine)
+        {
+            List<int> moves = new List<int>();
+            for (int i = 0; i < melodicLine.Length - 1; i++)
+                moves.Add(Interval.GetPitchesDifferenceInSemitones(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1)));
+
+            int movesCount = moves.Count;
+            for (int i = 0; i < movesCount - 1; i++)
+                moves.Add(moves[i] + moves[i + 1]);
+
+            return moves.Count(v => Interval.majorMinorSeptimeSemitones.Contains(Math.Abs(v)));
+        }
+
+        /// <summary>
+        /// 9. Funkcja sprawdzająca, czy dwa następujące po sobie akordy mają kwintę w basie.
+        /// </summary>
+        /// <param name="chord"></param>
+        /// <param name="possiblePitches"></param>
+        /// <param name="nextChord"></param>
+        /// <param name="possibleNextPitches"></param>
+        /// <returns></returns>
+        public static bool FollowingChordsOnQuint(Pitch[] chord, List<PitchInChord> possiblePitches, Pitch[] nextChord, List<PitchInChord> possibleNextPitches)
+        {
+            PitchInChord pitch = possiblePitches.Find(piC => piC.DegreeInChord == Degree.V);
+            PitchInChord nextPitch = possibleNextPitches.Find(piC => piC.DegreeInChord == Degree.V);
+
+            if (pitch != null && nextPitch != null && chord[^1] == pitch.Pitch && nextChord[^1] == nextPitch.Pitch)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// 10. Funkcja sprawdzająca, czy przy zdwojeniu danego stopnia, akord ma ten stopień w basie.
+        /// </summary>
+        /// <returns>Wartość boolowska określająca, czy akord ma kwintę w basie (jeśli kwinty zostały zdwojone). Wartość null, jeśli kwinty nie zostały zdwojone.</returns>
+        public static bool? DoubleDegreeInBass(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree)
+        {
+            PitchInChord pitch = possiblePitches.Find(piC => piC.DegreeInChord == degree);
+            int degreeCount = chord.Count(p => p == pitch.Pitch);
+            if (degreeCount == 2)
+                return chord[^1] == pitch.Pitch;
+
+            return null;
         }
 
         /// <summary>

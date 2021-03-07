@@ -18,7 +18,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
     public static class QualityFunctions
     {
         /// <summary>
-        /// Funkcja sprawdzająca, czy między dwoma następującymi akordami znajdują się seksty równoległe.
+        /// 1. Funkcja sprawdzająca, czy między dwoma następującymi akordami znajdują się seksty równoległe.
         /// </summary>
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
@@ -31,7 +31,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
 
         /// <summary>
-        /// Funkcja sprawdzająca, czy ruch basu i sporanu nastąpił w przeciwnych kierunkach.
+        /// 2. Funkcja sprawdzająca, czy ruch basu i sporanu nastąpił w przeciwnych kierunkach.
         /// </summary>
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
@@ -44,7 +44,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
 
         /// <summary>
-        /// Funkcja sprawdzająca przeciwny ruch na interwał doskonały (kwinta, oktowa, unisono).
+        /// 3. Funkcja sprawdzająca przeciwny ruch na interwał doskonały (kwinta, oktowa, unisono).
         /// </summary>
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
@@ -72,7 +72,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
 
         /// <summary>
-        /// Funkcja określająca rozległość układu danego akordu.
+        /// 4. Funkcja określająca rozległość układu danego akordu.
         /// </summary>
         /// <param name="chord"></param>
         /// <returns></returns>
