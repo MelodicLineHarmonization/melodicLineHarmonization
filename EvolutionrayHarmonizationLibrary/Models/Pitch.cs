@@ -81,7 +81,10 @@ namespace EvolutionrayHarmonizationLibrary.Models
             int octaveDifference = octaves[higherIndex] - octaves[lowerIndex];
             int pitchesDifference = values[higherIndex] - values[lowerIndex];
             if (values[higherIndex] < values[lowerIndex])
+            {
                 pitchesDifference = pitchesCount + pitchesDifference;
+                octaveDifference--;
+            }
 
             return octaveDifference * pitchesCount + pitchesDifference;
         }
@@ -106,7 +109,10 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public static bool operator ==(Pitch left, Pitch right)
         {
-            return Interval.GetPitchesDifferenceInSemitones(left, right) == 0;
+            if (left.Modifier == right.Modifier && left.PitchValue == right.PitchValue && (left.Octave == right.Octave || left.Octave == 0 || right.Octave == 0))
+                return true;
+
+            return false;
         }
 
         public static bool operator !=(Pitch left, Pitch right)

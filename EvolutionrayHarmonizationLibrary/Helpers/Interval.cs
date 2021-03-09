@@ -16,7 +16,7 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
         public readonly static List<int> majorMinorSixthPitchDistances = new List<int> { 2, 5 };
 
         public readonly static List<int> quintSemitones = new List<int> { 7 };
-        public readonly static List<int> quintPitchDistances = new List<int> { 4 };
+        public readonly static List<int> quintPitchDistances = new List<int> { 3, 4 };
 
         public readonly static List<int> unisonoOctaveSemitones = new List<int> { 0 };
         public readonly static List<int> unisonoOctavePitchDistances = new List<int> { 0 };
@@ -55,12 +55,18 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
             bool areSemitones = false;
             foreach (int semitones in acceptedSemitones)
                 if (semitones == intervalSemitons % semitonesInOctave)
+                {
                     areSemitones = true;
+                    break;
+                }
 
             bool isDistance = false;
             foreach (int distance in accepetedPitchesDistances)
                 if (distance == pitchesDistance)
-                    areSemitones = true;
+                {
+                    isDistance = true;
+                    break;
+                }
 
             if (areSemitones && isDistance)
                 return (true, intervalSemitons);
@@ -81,13 +87,13 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
             for (int i = 0; i < chord.Length; i++)
                 for (int j = i + 1; j < chord.Length; j++)
                 {
-                    (bool isInterval, int intervalSemitones) = IsInterval(chord[i], chord[j], intervaleSemitones, intervalDistances);
+                    (bool isInterval, _) = IsInterval(chord[i], chord[j], intervaleSemitones, intervalDistances);
 
                     if (isInterval)
                     {
-                        (bool isNextInterval, int nextIntervalSemitones) = IsInterval(nextChord[i], nextChord[j], intervaleSemitones, intervalDistances);
+                        (bool isNextInterval, _) = IsInterval(nextChord[i], nextChord[j], intervaleSemitones, intervalDistances);
 
-                        if (isNextInterval && intervalSemitones == nextIntervalSemitones)
+                        if (isNextInterval)
                             intervalsCount++;
                     }
 

@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvolutionaryHarmonization", "EvolutionaryHarmonization\EvolutionaryHarmonization.csproj", "{409DE87C-D38B-4D6A-9B7D-A1853B0AAD97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvolutionrayHarmonizationLibrary", "EvolutionrayHarmonizationLibrary\EvolutionrayHarmonizationLibrary.csproj", "{C2493C95-1050-462B-B689-BE9F26CFB1E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvolutionrayHarmonizationLibrary", "EvolutionrayHarmonizationLibrary\EvolutionrayHarmonizationLibrary.csproj", "{C2493C95-1050-462B-B689-BE9F26CFB1E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvolutionaryHarmonizationLibraryTest", "EvolutionaryHarmonizationLibraryTest\EvolutionaryHarmonizationLibraryTest.csproj", "{C8C2C735-8C75-4325-9369-A5FCF5BF6076}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{C2493C95-1050-462B-B689-BE9F26CFB1E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2493C95-1050-462B-B689-BE9F26CFB1E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2493C95-1050-462B-B689-BE9F26CFB1E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8C2C735-8C75-4325-9369-A5FCF5BF6076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8C2C735-8C75-4325-9369-A5FCF5BF6076}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8C2C735-8C75-4325-9369-A5FCF5BF6076}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8C2C735-8C75-4325-9369-A5FCF5BF6076}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

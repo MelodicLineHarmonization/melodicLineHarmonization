@@ -10,10 +10,10 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 {
     /// <summary>
     /// Klasa zawierająca funkcje służące do oceny jakości stworzonej kompozycji.
-    /// 1. Seksty równoległe.
-    /// 2. Przeciwny ruchu sporanu i basu.
-    /// 3. Przeciwny ruch na interwał doskonały (kwinta, oktawa).
-    /// 4. Układ rozległy lepszy niż układ skupiony.
+    /// <para> 1. Seksty równoległe. </para>
+    /// <para> 2. Przeciwny ruchu sporanu i basu. </para>
+    /// <para> 3. Przeciwny ruch na interwał doskonały (kwinta, oktawa). </para>
+    /// <para> 4. Układ rozległy lepszy niż układ skupiony. </para>
     /// </summary>
     public static class QualityFunctions
     {
@@ -23,7 +23,6 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
         /// <returns></returns>
-        // TODO Sprawdzić czy działa :)
         public static int ParallelSixths(Pitch[] chord, Pitch[] nextChord)
         {
             return Interval.GetParallelIntervalsCount(chord, nextChord, Interval.majorMinorSixthSemitones, Interval.majorMinorSixthPitchDistances);
@@ -36,10 +35,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
         /// <returns></returns>
-        // TODO Sprawdzić czy działa :)
-        public static bool OpposedBassSopranoMove(Pitch[] chord, Pitch[] nextChord)
+        public static bool ContraryBassSopranoMove(Pitch[] chord, Pitch[] nextChord)
         {
-            return OpposedVoicesMove(chord, nextChord, 0, chord.Length - 1);
+            return ContraryVoicesMove(chord, nextChord, 0, chord.Length - 1);
         }
 
 
@@ -49,8 +47,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
         /// <returns></returns>
-        // TODO Sprawdzić czy działa :)
-        public static int OpposedMoveOnPerfectInterval(Pitch[] chord, Pitch[] nextChord)
+        public static int ContraryMoveOnPerfectInterval(Pitch[] chord, Pitch[] nextChord)
         {
             int opposedMoveCount = 0;
             List<List<int>> perfectIntervalsSemitones = new List<List<int>> { Interval.quintSemitones, Interval.unisonoOctaveSemitones };
@@ -62,7 +59,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                     {
                         (bool isInterval, _) = Interval.IsInterval(nextChord[i], nextChord[j], perfectIntervalsSemitones[intervalIndex], perfectIntervalsDistances[intervalIndex]);
 
-                        if (isInterval && OpposedVoicesMove(chord, nextChord, i, j))
+                        if (isInterval && ContraryVoicesMove(chord, nextChord, i, j))
                             opposedMoveCount++;
 
                     }
@@ -81,7 +78,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             int minSemitonesDistances = int.MaxValue;
             for (int i = 0; i < chord.Length - 1; i++)
             {
-                int pitchesDistance = Interval.GetPitchesDifferenceInSemitones(chord[i], chord[i + 1]);
+                int pitchesDistance = Math.Abs(Interval.GetPitchesDifferenceInSemitones(chord[i], chord[i + 1]));
                 if (pitchesDistance < minSemitonesDistances)
                     minSemitonesDistances = pitchesDistance;
             }
@@ -89,7 +86,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             return minSemitonesDistances;
         }
 
-        private static bool OpposedVoicesMove(Pitch[] chord, Pitch[] nextChord, int firstLineIndex, int secondLineIndex)
+        private static bool ContraryVoicesMove(Pitch[] chord, Pitch[] nextChord, int firstLineIndex, int secondLineIndex)
         {
             int firstVoiceMove = Math.Sign(Interval.GetPitchesDifferenceInSemitones(chord[firstLineIndex], nextChord[firstLineIndex]));
             int secondVoiceMove = Math.Sign(Interval.GetPitchesDifferenceInSemitones(chord[secondLineIndex], nextChord[secondLineIndex]));

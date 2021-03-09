@@ -9,24 +9,23 @@ using System.Threading.Tasks;
 
 namespace EvolutionrayHarmonizationLibrary.Algorithm
 {
-    //TODO 5.
     /// <summary>
     /// Klasa zawierająca funkcje określające ograniczenia (silne i słabe) narzucone na tworzoną kompozycję.
-    /// Ograniczenia silne:
-    /// 1. Brak krzyżowania głosów.
-    /// 2. Tercja dominanty rozwiązana w górę. 
-    /// 3. Brak kwint i oktaw (przeciw)równoległych.
-    /// 4. Brak ruchu wszystkich głosów w jednym kierunku.
-    /// 5. Brak skoków o interwały zwiększone.
-    /// 6. Poprawne dźwięki w akordzie (poprawne zdwojenie, jeśli potrzebne).
-    /// 7. Rozpiętość między głosami max oktawa -> nie dotyczy basu.
-    /// Ograniczenia słabe:
-    /// 8. Brak semptymy w dwóch krokach (i w jednym). -> tutaj chyba jakiś wyjątek
-    /// 9. Brak dwóch następujących akordów na kwincie.
-    /// 10. Zdwojenie kwinty w basie, pierwszy i ostatni akord ze zdwojoną prymą.
-    /// 11. Ruch przynajmniej 2 głosów.
-    /// 12. Wszystkie głosy w dopuszczalnym zakresie.
-    /// 13. Płynne prowadzenie głosów (alt, tenor), brak skoku o zbyt duży interwał.
+    /// <para> Ograniczenia silne: </para>
+    /// <para> 1. Brak krzyżowania głosów. </para>
+    /// <para> 2. Tercja dominanty rozwiązana w górę. </para>
+    /// <para> 3. Brak kwint i oktaw (przeciw)równoległych. </para>
+    /// <para> 4. Brak ruchu wszystkich głosów w jednym kierunku. </para>
+    /// <para> 5. Brak skoków o interwały zwiększone. </para>
+    /// <para> 6. Poprawne dźwięki w akordzie (poprawne zdwojenie, jeśli potrzebne). </para>
+    /// <para> 7. Rozpiętość między głosami max oktawa -> nie dotyczy basu. </para>
+    /// <para> Ograniczenia słabe: </para>
+    /// <para> 8. Brak semptymy w dwóch krokach (i w jednym). -> tutaj chyba jakiś wyjątek </para>
+    /// <para> 9. Brak dwóch następujących akordów na kwincie. </para>
+    /// <para> 10. Zdwojenie kwinty w basie, pierwszy i ostatni akord ze zdwojoną prymą. </para>
+    /// <para> 11. Ruch przynajmniej 2 głosów. </para>
+    /// <para> 12. Wszystkie głosy w dopuszczalnym zakresie. </para>
+    /// <para> 13. Płynne prowadzenie głosów (alt, tenor), brak skoku o zbyt duży interwał. </para>
     /// </summary>
     public static class ConstraintsFunctions
     {
@@ -72,12 +71,12 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         }
 
         /// <summary>
-        /// 3. Funkcja określająca, czy pomiędzy dwoma kolejnymi akordami znajdują się kwinty równoległe.
+        /// 3. Funkcja określająca, czy pomiędzy dwoma kolejnymi akordami znajdują się kwinty lub oktawy równoległe.
         /// </summary>
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
         /// <returns></returns>
-        public static int ParallelQuints(Pitch[] chord, Pitch[] nextChord)
+        public static int ParallelQuintsAndOctaves(Pitch[] chord, Pitch[] nextChord)
         {
             int quintSum = Interval.GetParallelIntervalsCount(chord, nextChord, Interval.quintSemitones, Interval.quintPitchDistances);
             int octaveSum = Interval.GetParallelIntervalsCount(chord, nextChord, Interval.unisonoOctaveSemitones, Interval.unisonoOctavePitchDistances);
@@ -114,9 +113,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         public static int AugumentedIntervalMoveCount(MelodicLine melodicLine)
         {
             int augumentedCount = 0;
-            for (int i = 0; i < melodicLine.Length; i++)
+            for (int i = 0; i < melodicLine.Length - 1; i++)
             {
-                int semitonesMove = Interval.GetPitchesDifferenceInSemitones(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1));
+                int semitonesMove = Math.Abs(Interval.GetPitchesDifferenceInSemitones(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1)));
                 int pitchValueDistanve = Pitch.GetPitchValueDistance(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1));
 
                 if (pitchValueDistanve > 2) // at least quart
@@ -141,7 +140,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <param name="chord">Sprawdzany akord</param>
         /// <param name="possiblePitches">Lista możliwych dźwięków w akordzie</param>
         /// <returns>Liczba dźwięków spoza akordu lub o błędnej ilości.</returns>
-        public static int CorrectPitchesInChord(Pitch[] chord, List<PitchInChord> possiblePitches)
+        public static int IncorrectPitchesInChord(Pitch[] chord, List<PitchInChord> possiblePitches)
         {
             int mistakesCount = 0;
             int[] pitchesCount = new int[possiblePitches.Count];
@@ -152,13 +151,19 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                     pitchesCount[pitchIndex]++;
             }
 
+            //sum of pitches constraints not fullfilled
             for (int i = 0; i < pitchesCount.Length; i++)
                 if (pitchesCount[i] < possiblePitches[i].MinimumOccurencesInChord)
                         mistakesCount += possiblePitches[i].MinimumOccurencesInChord - pitchesCount[i];
                 else
                     if (pitchesCount[i] > possiblePitches[i].MaximumOccurencesInChord)
                         mistakesCount += pitchesCount[i] - possiblePitches[i].MaximumOccurencesInChord;
-            
+
+            //pitches not from chord
+            int pitchesFromChord = pitchesCount.Sum();
+            if (pitchesFromChord < chord.Length)
+                mistakesCount += (chord.Length - pitchesFromChord);
+
             return mistakesCount;
         }
 
@@ -173,7 +178,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             // Excluding last note
             for (int i = 0; i < chord.Length - 2; i++)
             {
-                if (Interval.GetPitchesDifferenceInSemitones(chord[i], chord[i + 1]) >= Interval.semitonesInOctave)
+                if (Math.Abs(Interval.GetPitchesDifferenceInSemitones(chord[i], chord[i + 1])) > Interval.semitonesInOctave)
                     exceedingIntervals++;
             }
 
@@ -221,11 +226,11 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// 10. Funkcja sprawdzająca, czy przy zdwojeniu danego stopnia, akord ma ten stopień w basie.
         /// </summary>
         /// <returns>Wartość boolowska określająca, czy akord ma kwintę w basie (jeśli kwinty zostały zdwojone). Wartość null, jeśli kwinty nie zostały zdwojone.</returns>
-        public static bool? DoubleDegreeInBass(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree)
+        public static bool? DoubledDegreeInBass(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree)
         {
             PitchInChord pitch = possiblePitches.Find(piC => piC.DegreeInChord == degree);
             int degreeCount = chord.Count(p => p == pitch.Pitch);
-            if (degreeCount == 2)
+            if (degreeCount >= 2)
                 return chord[^1] == pitch.Pitch;
 
             return null;
@@ -256,7 +261,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// </summary>
         /// <param name="chord"></param>
         /// <returns>Liczba głosów znajdujących się poza swoim zakresem.</returns>
-        public static int VoicesInAppropriateRange(Pitch[] chord)
+        public static int VoicesNotInAppropriateRange(Pitch[] chord)
         {
             int outsideRange = 0;
             for (int i = 0; i < chord.Length; i++)
@@ -278,7 +283,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             int exceedingIntervals = 0;
             for (int i = 0; i < melodicLine.Length - 1; i++)
             {
-                int intervalSemitones = Interval.GetPitchesDifferenceInSemitones(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1));
+                int intervalSemitones = Math.Abs(Interval.GetPitchesDifferenceInSemitones(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1)));
                 semitonesCount += intervalSemitones;
                 if (intervalSemitones > maxIntervalSemitones)
                     exceedingIntervals++;

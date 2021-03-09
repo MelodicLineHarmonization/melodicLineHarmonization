@@ -18,10 +18,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <param name="composition"></param>
         public static void MutateComposition(Composition composition)
         {
-            int compositionLength = composition.Functions.Count;
-            double mutationProbability = 1.0 / compositionLength;
+            double mutationProbability = 1.0 / composition.Length;
 
-            for (int i = 0; i < compositionLength; i++)
+            for (int i = 0; i < composition.Length; i++)
                 if (RandomSingleton.NextDouble() <= mutationProbability)
                 {
                     int noteToModifyIndex = RandomSingleton.Next(1, 4);
@@ -30,24 +29,22 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         }
 
         /// <summary>
-        /// Krzyżowanie klasyczne - kompozycje krzyżowane są pionowo (podmiany akordów)
+        /// Krzyżowanie klasyczne - krzyżowanie następuje dźwiękami (pojedynczy dźwięk może zostać podmieniony)
         /// </summary>
         /// <param name="composition1"></param>
         /// <param name="composition2"></param>
-        public static Composition CrossoverCompositionsVerticaly(Composition composition1, Composition composition2)
+        public static Composition CrossoverCompositions(Composition composition1, Composition composition2)
         {
-            int compositionLength = composition1.Functions.Count;
             Composition childComposition = composition1.Copy();
 
-            for (int i = 0; i < compositionLength; i++)
-            {
-                int randComposition = RandomSingleton.Next(0, 2);
-
-                if (randComposition == 1)
-                    for (int j = 0; j < childComposition.MelodicLines.Count; j++)
-                        if (childComposition.MelodicLines[j].IsModifiable)
-                            childComposition.MelodicLines[j].SetPitch(i, composition2.MelodicLines[j].GetPitch(i).Copy());
-            }
+            for (int i = 0; i < childComposition.MelodicLines.Count; i++)
+                if (childComposition.MelodicLines[i].IsModifiable)
+                    for (int j = 0; j < childComposition.Length; j++)
+                    {
+                        int randComposition = RandomSingleton.Next(0, 2);
+                        if (randComposition == 1)
+                            childComposition.MelodicLines[i].SetPitch(i, composition2.MelodicLines[i].GetPitch(j).Copy());
+                    }
 
             return childComposition;
         }
