@@ -50,8 +50,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
             foreach((Pitch, HarmonicFunction) el in baseComposition.PitchesAndFunctions)
             {
-                pitches.Add(el.Item1);
-                Functions.Add(el.Item2);
+                pitches.Add(el.Item1.Copy());
+                Functions.Add(el.Item2.Copy());
             }
 
             MelodicLines.Add(new MelodicLine(pitches, false));

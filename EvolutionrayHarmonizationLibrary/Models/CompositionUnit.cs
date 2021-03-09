@@ -9,8 +9,9 @@ namespace EvolutionrayHarmonizationLibrary.Models
     public class CompositionUnit
     {
         private double? score = null;
-        
         public Composition Composition { get; }
+        public int PopulationNumber { get; init; }
+
         public double Score
         { 
             get
@@ -23,9 +24,10 @@ namespace EvolutionrayHarmonizationLibrary.Models
             }
         }
 
-        public CompositionUnit(Composition composition)
+        public CompositionUnit(Composition composition, int populationNumber)
         {
             Composition = composition;
+            PopulationNumber = populationNumber;
         }
 
         private double CalculateValue()

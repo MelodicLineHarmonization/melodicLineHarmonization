@@ -11,6 +11,8 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 {
     public static class EvolutionaryFunctions
     {
+        private static readonly int compositionMelodicLineCount = 4;
+        private static readonly int eliteSize = 3;
         private static readonly int tournamentSize = 4;
 
         /// <summary>
@@ -46,6 +48,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <param name="composition2"></param>
         public static CompositionUnit CrossoverCompositions(CompositionUnit compositionUnit1, CompositionUnit compositionUnit2)
         {
+            if (compositionUnit1.PopulationNumber != compositionUnit2.PopulationNumber)
+                throw new ArgumentException("Cannot crossover compositions from different populations.");
+
             Composition composition1 = compositionUnit1.Composition;
             Composition composition2 = compositionUnit2.Composition;
             Composition childComposition = composition1.Copy();
@@ -59,7 +64,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                             childComposition.MelodicLines[i].SetPitch(i, composition2.MelodicLines[i].GetPitch(j).Copy());
                     }
 
-            return new CompositionUnit(childComposition);
+            return new CompositionUnit(childComposition, compositionUnit1.PopulationNumber + 1);
         }
 
         public static CompositionUnit CompositionSelection(List<CompositionUnit> population)
@@ -80,6 +85,52 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                     maxScoreIndex = i;
 
             return population[indices[maxScoreIndex]];
+        }
+
+        public static List<CompositionUnit> CreateStartPopulation(BaseComposition baseComposition, int populationCount)
+        {
+            List<CompositionUnit> population = new List<CompositionUnit>();
+            for (int i = 0; i < populationCount; i++)
+            {
+                Composition composition = new Composition(baseComposition);
+                while (composition.MelodicLines.Count < compositionMelodicLineCount)
+                {
+                    int melodicLineIndex = composition.MelodicLines.Count;
+                    List<Pitch> newMelodicLinePitches = new List<Pitch>();
+                    for (int j = 0; j < composition.Length; j++)
+                        newMelodicLinePitches.Add(GetRandomPitchFromFunctionForVoice(composition.Functions[j], composition.Key, melodicLineIndex));
+
+                    composition.MelodicLines.Add(new MelodicLine(newMelodicLinePitches, true));
+                }
+                population.Add(new CompositionUnit(composition, 0));
+            }
+
+            return population;
+        }
+
+        public static List<CompositionUnit> CreateNextGeneration(List<CompositionUnit> population)
+        {
+            List<CompositionUnit> newPopulation = new List<CompositionUnit>();
+            for (int i = 0; i < population.Count - eliteSize; i++)
+                newPopulation.Add(CreateNextUnit(population));
+
+            population.Sort((e1, e2) => e1.Score.CompareTo(e2.Score));
+
+            for (int i = 1; i <= eliteSize; i++)
+                newPopulation.Add(new CompositionUnit(population[^i].Composition, population[^i].PopulationNumber + 1));
+
+            return newPopulation;
+        }
+
+        //TODO Spytać się, czy dwie takie same to problem!
+        private static CompositionUnit CreateNextUnit(List<CompositionUnit> population)
+        {
+            CompositionUnit unit1 = CompositionSelection(population);
+            CompositionUnit unit2 = CompositionSelection(population);
+            CompositionUnit childUnit = CrossoverCompositions(unit1, unit2);
+            MutateComposition(childUnit);
+
+            return childUnit;
         }
 
         private static Pitch GetRandomPitchFromFunctionForVoice(HarmonicFunction harmonicFunction, Keys key, int voiceIndex)
