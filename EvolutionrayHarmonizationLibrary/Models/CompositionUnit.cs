@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EvolutionrayHarmonizationLibrary.Algorithm;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
 {
     public class CompositionUnit
     {
+
+
         private double? score = null;
         public Composition Composition { get; }
         public int PopulationNumber { get; init; }
@@ -30,9 +33,17 @@ namespace EvolutionrayHarmonizationLibrary.Models
             PopulationNumber = populationNumber;
         }
 
+        public void RecalculateScore()
+        {
+            score = CalculateValue();
+        }
+
         private double CalculateValue()
         {
             throw new NotImplementedException();
         }
+
+
+        
     }
 }

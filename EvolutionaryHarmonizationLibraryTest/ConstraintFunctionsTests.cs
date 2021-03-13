@@ -7,7 +7,7 @@ using Xunit;
 
 namespace EvolutionaryHarmonizationLibraryTest
 {
-    public class ConstraintFunctionsTest
+    public class ConstraintFunctionsTests
     {
         [Fact]
         public void CrossedVoicesReturnsTwo()
@@ -57,7 +57,7 @@ namespace EvolutionaryHarmonizationLibraryTest
                 new Pitch { Modifier = Modifiers.Flat, Octave = 1, PitchValue = Pitches.E }
             };
 
-            Pitch noteToResolution = new Pitch { Modifier = Modifiers.None, Octave = 2, PitchValue = Pitches.A };
+            Pitch noteToResolution = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.A };
             int minSemitones = -1;
             int maxSemitones = -1;
             bool resolution = ConstraintsFunctions.NoteCorrectResolution(firstChord, secondChord, noteToResolution, minSemitones, maxSemitones);
@@ -83,7 +83,7 @@ namespace EvolutionaryHarmonizationLibraryTest
                 new Pitch { Modifier = Modifiers.Flat, Octave = 1, PitchValue = Pitches.E }
             };
 
-            Pitch noteToResolution = new Pitch { Modifier = Modifiers.None, Octave = 2, PitchValue = Pitches.A };
+            Pitch noteToResolution = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.A };
             int minSemitones = -1;
             int maxSemitones = -1;
             bool resolution = ConstraintsFunctions.NoteCorrectResolution(firstChord, secondChord, noteToResolution, minSemitones, maxSemitones);

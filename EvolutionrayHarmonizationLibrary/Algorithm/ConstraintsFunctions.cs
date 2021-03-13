@@ -225,7 +225,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <summary>
         /// 10. Funkcja sprawdzająca, czy przy zdwojeniu danego stopnia, akord ma ten stopień w basie.
         /// </summary>
-        /// <returns>Wartość boolowska określająca, czy akord ma kwintę w basie (jeśli kwinty zostały zdwojone). Wartość null, jeśli kwinty nie zostały zdwojone.</returns>
+        /// <returns>Wartość boolowska określająca, czy akord ma dany stopień w basie (jeśli został zdwojone). Wartość null, jeśli dany stopień nie został zdwojony.</returns>
         public static bool? DoubledDegreeInBass(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree)
         {
             PitchInChord pitch = possiblePitches.Find(piC => piC.DegreeInChord == degree);
@@ -277,7 +277,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <returns>Zwracane są dwie wartości: łączna suma odległości półtonowych między kolejnymi dźwiękami 
         /// i liczba skoków przekraczająca maksymalny interwał</returns>
         // TODO Sprawdzić czy działa :)
-        public static (int, int) GetMelodicLineSmooth(MelodicLine melodicLine, int maxIntervalSemitones)
+        public static (int, int) GetMelodicLineSmooth(MelodicLine melodicLine, int? maxIntervalSemitones = null)
         {
             int semitonesCount = 0;
             int exceedingIntervals = 0;
@@ -285,7 +285,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             {
                 int intervalSemitones = Math.Abs(Interval.GetPitchesDifferenceInSemitones(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1)));
                 semitonesCount += intervalSemitones;
-                if (intervalSemitones > maxIntervalSemitones)
+                if (maxIntervalSemitones != null && intervalSemitones > maxIntervalSemitones.Value)
                     exceedingIntervals++;
             }
 

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace EvolutionaryHarmonizationLibraryTest
 {
-    public class QualityFunctionsTest
+    public class QualityFunctionsTests
     {
         [Fact]
         public void ParellelSixthsReturnsTwo()

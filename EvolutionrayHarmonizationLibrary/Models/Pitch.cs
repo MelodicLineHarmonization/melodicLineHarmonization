@@ -46,18 +46,6 @@ namespace EvolutionrayHarmonizationLibrary.Models
             };
         }
 
-        public static Pitch GetRandom(int minOctave, int maxOctave)
-        {
-            Pitch p = new Pitch
-            {
-                Octave = RandomSingleton.Next(minOctave, maxOctave + 1),
-                PitchValue = (Pitches)pitchesValues[RandomSingleton.Next(0, pitchesCount)],
-                Modifier = Modifiers.None
-            };
-
-            return p;
-        }
-
         public void ToKey(Keys key)
         {
             (List<(Pitches, Modifiers)> signs, _, _) = KeyConverter.KeyToSigns(key);
