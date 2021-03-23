@@ -44,9 +44,9 @@ namespace EvolutionrayHarmonizationLibrary.Models
         public Composition(BaseComposition baseComposition)
         {
             Key = baseComposition.Key;
-            List<Pitch> pitches = new List<Pitch>();
-            MelodicLines = new List<MelodicLine>();
-            Functions = new List<HarmonicFunction>();
+            List<Pitch> pitches = new();
+            MelodicLines = new();
+            Functions = new();
 
             foreach((Pitch, HarmonicFunction) el in baseComposition.PitchesAndFunctions)
             {
@@ -70,7 +70,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
             Pitch[] pitches = new Pitch[MelodicLines.Count];
             for (int i = 0; i < MelodicLines.Count; i++)
-                pitches[i] = MelodicLines[i].GetPitch(i);
+                pitches[i] = MelodicLines[i].GetPitch(index);
 
             return pitches;
         }
@@ -86,8 +86,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
             Composition composition = new Composition
             {
                 Key = Key,
-                MelodicLines = new List<MelodicLine>(),
-                Functions = new List<HarmonicFunction>()
+                MelodicLines = new(),
+                Functions = new()
             };
 
             foreach (MelodicLine line in MelodicLines)

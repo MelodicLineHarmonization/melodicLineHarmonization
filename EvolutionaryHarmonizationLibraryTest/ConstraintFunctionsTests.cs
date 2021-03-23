@@ -60,7 +60,7 @@ namespace EvolutionaryHarmonizationLibraryTest
             Pitch noteToResolution = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.A };
             int minSemitones = -1;
             int maxSemitones = -1;
-            bool resolution = ConstraintsFunctions.NoteCorrectResolution(firstChord, secondChord, noteToResolution, minSemitones, maxSemitones);
+            bool resolution = ConstraintsFunctions.NoteIncorrectResolution(firstChord, secondChord, noteToResolution, minSemitones, maxSemitones);
             Assert.True(resolution);
 
         }
@@ -86,7 +86,7 @@ namespace EvolutionaryHarmonizationLibraryTest
             Pitch noteToResolution = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.A };
             int minSemitones = -1;
             int maxSemitones = -1;
-            bool resolution = ConstraintsFunctions.NoteCorrectResolution(firstChord, secondChord, noteToResolution, minSemitones, maxSemitones);
+            bool resolution = ConstraintsFunctions.NoteIncorrectResolution(firstChord, secondChord, noteToResolution, minSemitones, maxSemitones);
             Assert.False(resolution);
         }
 

@@ -56,18 +56,18 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// <param name="pitchToResolution">Dźwięk, z żądanym sposobem rozwiązania</param>
         /// <param name="minSemitoneMove">Minimalna wartość w półtonach żądanego przesunięcia (wartość ujemna -> rozwiązanie w dół)</param>
         /// <param name="maxSemitoneMove">Maksymalna wartość w półtonach żądnaego przesunięcia (wartość ujemna -> rozwiązanie w dół)</param>
-        /// <returns>Wartość boolowska określająca, czy nuta została właściwie rozwiązana</returns>
-        public static bool NoteCorrectResolution(Pitch[] chord, Pitch[] nextChord, Pitch pitchToResolution, int minSemitoneMove, int maxSemitoneMove)
+        /// <returns>Wartość boolowska określająca, czy nuta została właściwie rozwiązana, prawda - nuta rozwiązana niepoprawnie lub nuta nie istnieje w akordzie do rozwiązania, prawda - w przeciwnym wypadku.</returns>
+        public static bool NoteIncorrectResolution(Pitch[] chord, Pitch[] nextChord, Pitch pitchToResolution, int minSemitoneMove, int maxSemitoneMove)
         {
             int pitchIndex = Array.IndexOf(chord, pitchToResolution);
             if (pitchIndex == -1)
-                throw new ArgumentException("Pitch to resolution not found in first chord.");
+                return true;
 
             int semitoneDifference = Interval.GetPitchesDifferenceInSemitones(chord[pitchIndex], nextChord[pitchIndex]);
             if (semitoneDifference <= maxSemitoneMove && semitoneDifference >= minSemitoneMove)
-                return true;
+                return false;
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -222,6 +222,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             return false;
         }
 
+        //TODO Rozbić na dwie funkcje - sprawdzanie podwojenia + sprawdzanie basu
         /// <summary>
         /// 10. Funkcja sprawdzająca, czy przy zdwojeniu danego stopnia, akord ma ten stopień w basie.
         /// </summary>

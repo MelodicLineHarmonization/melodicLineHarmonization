@@ -9,9 +9,9 @@ namespace EvolutionrayHarmonizationLibrary.Models
 {
     public class CompositionUnit
     {
-
-
         private double? score = null;
+
+        private bool? isCorrect = null;
         public Composition Composition { get; }
         public int PopulationNumber { get; init; }
 
@@ -22,8 +22,20 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 if (score.HasValue)
                     return score.Value;
 
-                score = CalculateValue();
+                (score, isCorrect) = CalculateValue();
                 return score.Value;
+            }
+        }
+
+        public bool IsCorrect
+        {
+            get
+            {
+                if (isCorrect.HasValue)
+                    return isCorrect.Value;
+
+                (score, isCorrect) = CalculateValue();
+                return isCorrect.Value;
             }
         }
 
@@ -35,12 +47,12 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public void RecalculateScore()
         {
-            score = CalculateValue();
+            (score, isCorrect) = CalculateValue();
         }
 
-        private double CalculateValue()
+        private (double, bool) CalculateValue()
         {
-            throw new NotImplementedException();
+            return GoalFunction.CalculateCompositionScore(Composition, PopulationNumber);
         }
 
 

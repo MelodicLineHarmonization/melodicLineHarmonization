@@ -18,24 +18,97 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static readonly int septimMoveMultiplier = 10;
         private static readonly int melodicLineSmoothMultiplier = 10;
 
-        private static readonly int followingOnQuintMultiplier = 10;
+        private static readonly int followingOnQuintMultiplier = 20;
         private static readonly int doubleQuintNotInBassMultiplier = 10;
-        private static readonly int moreThenTwoVoicesWithoutMoveMultiplier = 10;
-        private static readonly int voicesNotInAppropriateRangeMultiplier = 10;
+        private static readonly int moreThenTwoVoicesWithoutMoveMultiplier = 40;
+        private static readonly int voicesNotInAppropriateRangeMultiplier = 5;
 
-        private static readonly int augumentedIntervalMoveCountMultiplier = 10;
+        private static readonly int augumentedIntervalMoveCountMultiplier = 100;
 
-        private static readonly int voicesCrossoverMultiplier = 10;
-        private static readonly int incorrectPitchesInChordMultiplier = 10;
-        private static readonly int widerThanOctaveMultiplier = 10;
-        private static readonly int incorrectNoteResolutionMultiplier = 10;
-        private static readonly int parallelQuintsMultiplier = 10;
-        private static readonly int allVoicesOneDirectionMultiplier = 10;
+        private static readonly int voicesCrossoverMultiplier = 100;
+        private static readonly int incorrectPitchesInChordMultiplier = 500;
+        private static readonly int widerThanOctaveMultiplier = 50;
+        private static readonly int incorrectNoteResolutionMultiplier = 100;
+        private static readonly int parallelQuintsMultiplier = 100;
+        private static readonly int allVoicesOneDirectionMultiplier = 100;
 
-        public static double CalculateCompositionScore(Composition composition)
+        private static readonly int doubleFirstInBassFirstLastChordMultiplier = 500;
+
+        private static readonly double C = 0.5;
+        private static readonly double alfa = 1;
+        private static readonly double beta = 1;
+
+
+        public static (double, bool) CalculateCompositionScore(Composition composition, int populationNumber)
         {
-            // suma po wszystkich akordach + sprawdzić pierwszy i ostatni akord (dwojenie prymy i pryma w basie)
-            throw new NotImplementedException();
+            (double qualitySum, double constraintsWeakSum, double constraintsStrongSum) = CalculateCompostitionScoreForChord(composition);
+            (double constraintsWeakSumMelodicLines , double constraintsStrongSumMelodicLines) = CalculateCompostitionScoreForMelodicLines(composition);
+
+            constraintsWeakSum += constraintsWeakSumMelodicLines;
+            constraintsStrongSum += constraintsStrongSumMelodicLines;
+
+            return (qualitySum - constraintsWeakSum - Math.Pow((C * populationNumber), alfa) * constraintsStrongSum, constraintsStrongSum == 0);
+        }
+
+        private static (double constraintsWeakSum, double constraintsStrongSum) CalculateCompostitionScoreForMelodicLines(Composition composition)
+        {
+            List<int> indicesForModifiableMelodicLines = new();
+            List<int> indicesForSmoothMove = new();
+            for (int i = 0; i < composition.MelodicLines.Count; i++)
+                if (composition.MelodicLines[i].IsModifiable)
+                {
+                    indicesForModifiableMelodicLines.Add(i);
+                    if (i < composition.MelodicLines.Count - 1)
+                        indicesForSmoothMove.Add(i);
+                }
+
+            double constraintsWeakSum = CalculateWeakConstraintsForMelodicLines(composition, indicesForModifiableMelodicLines, indicesForSmoothMove);
+            double constraintsStrongSum = CalculateStrongConstraintsForMelodicLines(composition, indicesForModifiableMelodicLines);
+
+            return (constraintsWeakSum, constraintsStrongSum);
+        }
+
+        private static (double qualitySum, double constraintsWeakSum, double constraintsStrongSum) CalculateCompostitionScoreForChord(Composition composition)
+        {
+            double qualitySum = 0;
+            double constraintsWeakSum = 0;
+            double constraintsStrongSum = 0;
+            Pitch[] chord = composition.GetChordAtPosition(0);
+            HarmonicFunction function = composition.Functions[0];
+            // Zdwojona pryma w pierwszym akordzie (akord na prymie)
+            constraintsStrongSum += CalculateDoubledFirst(composition.Key, chord, function);
+
+            for (int i = 1; i < composition.Length; i++)
+            {
+                Pitch[] nextChord = composition.GetChordAtPosition(i);
+                HarmonicFunction nextFunction = composition.Functions[i];
+                qualitySum += CalculateQuality(chord, nextChord);
+                constraintsWeakSum += CalculateWeakConstraintsForChords(composition.Key, chord, function, nextChord, nextFunction);
+                constraintsStrongSum += CalculateStrongConstraintsForChords(composition.Key, chord, function, nextChord, nextFunction);
+
+                chord = nextChord;
+                function = nextFunction;
+            }
+            qualitySum += CalculateQuality(chord);
+            constraintsWeakSum += CalculateWeakConstraintsForChords(composition.Key, chord, function);
+            constraintsStrongSum += CalculateStrongConstraintsForChords(composition.Key, chord, function);
+
+            constraintsStrongSum += CalculatePenulitmateChordForCorrectBass(composition);
+            // Zdwojona pryma w ostatnim akordzie (akord na prymie)
+            constraintsStrongSum += CalculateDoubledFirst(composition.Key, chord, function);
+
+            return (qualitySum, constraintsWeakSum, constraintsStrongSum);
+        }
+
+        private static double CalculateDoubledFirst(Keys key, Pitch[] chord, HarmonicFunction function)
+        {
+            List<PitchInChord> possiblePitches = function.GetPitchesInFunction(key);
+            bool? doubleFirst = ConstraintsFunctions.DoubledDegreeInBass(chord, possiblePitches, Degree.I);
+
+            if (!doubleFirst.HasValue || !doubleFirst.Value)
+                return Math.Pow(doubleFirstInBassFirstLastChordMultiplier, beta);
+
+            return 0;
         }
 
         private static double CalculateQuality(Pitch[] chord, Pitch[] nextChord = null)
@@ -73,7 +146,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                    voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier;
         }
 
-        private static double CaculateWeakConstraintsForMelodicLines(Composition composition, List<int> septimeMoveMelodicLinesIndices, List<int> smoothMelodicLinesIndices)
+        private static double CalculateWeakConstraintsForMelodicLines(Composition composition, List<int> septimeMoveMelodicLinesIndices, List<int> smoothMelodicLinesIndices)
         {
             int septimeMoveSum = 0;
             int melodicLineSmoothSum = 0;
@@ -91,19 +164,20 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static double CalculateStrongConstraintsForChords(Keys key, Pitch[] chord, HarmonicFunction function, Pitch[] nextChord = null, HarmonicFunction nextFunction = null)
         {
             List<PitchInChord> chordPossiblePitches = function.GetPitchesInFunction(key);
-            int voicesCrossoverSum = ConstraintsFunctions.VoicesCrossover(chord);
-            int incorrectPitchesSum = ConstraintsFunctions.IncorrectPitchesInChord(chord, chordPossiblePitches);
-            int widerThanOctaveSum = ConstraintsFunctions.WiderThanOctaveSpread(chord);
+            double voicesCrossoverSum = Math.Pow(ConstraintsFunctions.VoicesCrossover(chord), beta);
+            double incorrectPitchesSum = Math.Pow(ConstraintsFunctions.IncorrectPitchesInChord(chord, chordPossiblePitches), beta);
+            double widerThanOctaveSum = Math.Pow(ConstraintsFunctions.WiderThanOctaveSpread(chord), beta);
             if (nextChord != null)
             {
-                int correctResolutionSum = 0;
-                if (function.Function == Degree.V)
+                double correctResolutionSum = 0;
+                if (function.Function == Degree.V && (nextFunction.Function == Degree.I || nextFunction.Function == Degree.VI))
                 {
+                    //tonika w basie
                     Pitch third = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.III).Pitch;
-                    correctResolutionSum = Convert.ToInt32(ConstraintsFunctions.NoteCorrectResolution(chord, nextChord, third, 1, 1));
+                    correctResolutionSum = Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, third, -1, -1)), beta);
                 }
-                int parallelQuintsSum = ConstraintsFunctions.ParallelQuintsAndOctaves(chord, nextChord);
-                int allVoicesOneDirectionSum = Convert.ToInt32(ConstraintsFunctions.AllVoicesOneDirection(chord, nextChord));
+                double parallelQuintsSum = Math.Pow(ConstraintsFunctions.ParallelQuintsAndOctaves(chord, nextChord), beta);
+                double allVoicesOneDirectionSum = Math.Pow(Convert.ToInt32(ConstraintsFunctions.AllVoicesOneDirection(chord, nextChord)), beta);
 
 
                 return voicesCrossoverSum * voicesCrossoverMultiplier +
@@ -121,12 +195,34 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
         private static double CalculateStrongConstraintsForMelodicLines(Composition composition, List<int> melodicLinesIndices)
         {
-            int augumentedMoveCountSum = 0;
+            double augumentedMoveCountSum = 0;
 
             foreach (int index in melodicLinesIndices)
-                augumentedMoveCountSum += ConstraintsFunctions.AugumentedIntervalMoveCount(composition.MelodicLines[index]);
+                augumentedMoveCountSum += Math.Pow(ConstraintsFunctions.AugumentedIntervalMoveCount(composition.MelodicLines[index]), beta);
 
             return augumentedMoveCountSum * augumentedIntervalMoveCountMultiplier;
+        }
+
+        private static double CalculatePenulitmateChordForCorrectBass(Composition composition)
+        {
+            Pitch[] penultimateChord = composition.GetChordAtPosition(composition.Length - 2);
+            HarmonicFunction penultimateFunction = composition.Functions[^2];
+
+            // Pryma w basie w przypadku dominanty (zdwojona jeśli 3 dźwięki)
+            if (penultimateFunction.Function == Degree.V)
+                return CalculateDoubledFirst(composition.Key, penultimateChord, penultimateFunction);
+
+            //Kwinta w basie w przypadku subdominanty (do sprawdzenia)
+            if (penultimateFunction.Function == Degree.IV)
+            {
+                List<PitchInChord> possiblePitches = penultimateFunction.GetPitchesInFunction(composition.Key);
+                bool? doubleFirst = ConstraintsFunctions.DoubledDegreeInBass(penultimateChord, possiblePitches, Degree.V);
+
+                if (!doubleFirst.HasValue || !doubleFirst.Value)
+                    return Math.Pow(doubleFirstInBassFirstLastChordMultiplier, beta);
+            }
+
+            return 0;
         }
     }
 }

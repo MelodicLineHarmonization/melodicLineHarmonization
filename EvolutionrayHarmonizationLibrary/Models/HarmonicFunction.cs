@@ -68,7 +68,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
         private int GetRealNumberOfPitch(int pitchNumber)
         {
             if (pitchNumber > Pitch.maxPitchValue)
-                return (pitchNumber % Pitch.pitchesCount) + Pitch.minPitchValue;
+                return (pitchNumber % Pitch.pitchesCount);
 
             return pitchNumber;
         }
@@ -80,6 +80,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
             pitch.Modifier += 1;
 
+            //TODO błędny porównanie, do poprawy
             if ((int)pitch.Modifier > Pitch.maxPitchValue)
                 throw new ArgumentException("Application does not support triple sharp, please change key of composition.");
         }

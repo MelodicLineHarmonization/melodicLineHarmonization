@@ -1,78 +1,60 @@
-﻿using EvolutionrayHarmonizationLibrary.Enums;
+﻿using EvolutionrayHarmonizationLibrary.Algorithm;
+using EvolutionrayHarmonizationLibrary.Enums;
 using EvolutionrayHarmonizationLibrary.Helpers;
 using EvolutionrayHarmonizationLibrary.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace EvolutionaryHarmonization
 {
     class Program
     {
+        private static readonly int populationCount = 1000;
+        private static readonly SimpleRandom random = new(new Random());
+        private static readonly int iterationCount = 2000;
+
+
         static void Main(string[] args)
         {
-            //BaseComposition baseComposition = new BaseComposition();
-            //baseComposition.Key = Keys.C;
-            //baseComposition.PitchesAndFunctions = new List<(Pitch, HarmonicFunction)>();
-            //baseComposition.PitchesAndFunctions.Add((new Pitch { Modifier = Modifiers.None, Octave = 2, PitchValue = Pitches.C }, new HarmonicFunction { Function = HarmonicFunctions.I }));
-            //baseComposition.PitchesAndFunctions.Add((new Pitch { Modifier = Modifiers.None, Octave = 2, PitchValue = Pitches.G }, new HarmonicFunction { Function = HarmonicFunctions.V }));
+            List<(Pitch, HarmonicFunction)> pitchesAndFunctions = new()
+            {
+                (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.I}),
+                (new Pitch { PitchValue = Pitches.D, Modifier = Modifiers.None, Octave = 6 }, new HarmonicFunction { Function = Degree.I}),
+                (new Pitch { PitchValue = Pitches.E, Modifier = Modifiers.None, Octave = 6 }, new HarmonicFunction { Function = Degree.IV}),
+                (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.None, Octave = 6 }, new HarmonicFunction { Function = Degree.IV}),
+                (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.I}),
+                (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.V}),
+                (new Pitch { PitchValue = Pitches.F, Modifier = Modifiers.Sharp, Octave = 5 }, new HarmonicFunction { Function = Degree.V}),
+                (new Pitch { PitchValue = Pitches.G, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.I}),
+            };
+            BaseComposition baseComposition = new BaseComposition { Key = Keys.G, PitchesAndFunctions = pitchesAndFunctions };
+            baseComposition.SaveToFile("BaseExample.json");
+            List<PopulationStatistics> statisticsList = new();
 
+            (List<CompositionUnit> population, PopulationStatistics statistics) = EvolutionaryFunctions.CreateStartPopulation(baseComposition, populationCount, random);
+            statisticsList.Add(statistics);
+            Console.WriteLine("=============================");
+            Console.WriteLine("Start population statistics: ");
+            Console.WriteLine("Max value: " + statistics.MaxValue);
+            Console.WriteLine("Standard deviation: " + statistics.StandardDeviation);
+            Console.WriteLine("Is best correct: " + statistics.IsMaxCorrect);
 
-            //Composition composition = new Composition(baseComposition);
-            //composition.SaveToFile("testComp.json");
-            //Composition comp2 = Composition.ReadFromFile("testComp.json");
+            for (int i = 0; i < iterationCount; i++)
+            {
+                (population, statistics) = EvolutionaryFunctions.CreateNextGeneration(population, random);
+                statisticsList.Add(statistics);
+                Console.WriteLine("=============================");
+                Console.WriteLine($"Population {i + 1} statistics: ");
+                Console.WriteLine("Max value: " + statistics.MaxValue);
+                Console.WriteLine("Standard deviation: " + statistics.StandardDeviation);
+                Console.WriteLine("Is best correct: " + statistics.IsMaxCorrect);
+            }
 
-            Pitch a = new Pitch
-            {
-                Modifier = Modifiers.None,
-                PitchValue = Pitches.H,
-                Octave = 1
-            };
-            Pitch b = new Pitch
-            {
-                Modifier = Modifiers.None,
-                PitchValue = Pitches.C,
-                Octave = 2
-            };
-            Console.WriteLine(Interval.GetPitchesDifferenceInSemitones(a, b) + " == -1");
-            a = new Pitch
-            {
-                Modifier = Modifiers.None,
-                PitchValue = Pitches.C,
-                Octave = 1
-            };
-            b = new Pitch
-            {
-                Modifier = Modifiers.None,
-                PitchValue = Pitches.H,
-                Octave = 2
-            };
-            Console.WriteLine(Interval.GetPitchesDifferenceInSemitones(a, b) + " == -23");
-            a = new Pitch
-            {
-                Modifier = Modifiers.None,
-                PitchValue = Pitches.H,
-                Octave = 2
-            };
-            b = new Pitch
-            {
-                Modifier = Modifiers.None,
-                PitchValue = Pitches.C,
-                Octave = 1
-            };
-            Console.WriteLine(Interval.GetPitchesDifferenceInSemitones(a, b) + " == 23");
-            a = new Pitch
-            {
-                Modifier = Modifiers.DoubleFlat,
-                PitchValue = Pitches.C,
-                Octave = 2
-            };
-            b = new Pitch
-            {
-                Modifier = Modifiers.DoubleSharp,
-                PitchValue = Pitches.H,
-                Octave = 1
-            };
-            Console.WriteLine(Interval.GetPitchesDifferenceInSemitones(a, b) + " == 1");
+            statistics.BestComposition.SaveToFile("BestComposition.json");
+            string statisticsJson = JsonConvert.SerializeObject(statisticsList);
+            File.WriteAllText("WholeStatistics.json", statisticsJson);
         }
     }
 }

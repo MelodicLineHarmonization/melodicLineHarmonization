@@ -25,7 +25,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         {
             Composition composition = compositionUnit.Composition;
             double mutationProbability = 1.0 / composition.Length;
-            List<int> possibleModifiyIndices = new List<int>();
+            List<int> possibleModifiyIndices = new();
             
             for (int i = 0; i < composition.MelodicLines.Count; i++)
                 if (composition.MelodicLines[i].IsModifiable)
@@ -90,16 +90,16 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             return population[indices[maxScoreIndex]];
         }
 
-        public static List<CompositionUnit> CreateStartPopulation(BaseComposition baseComposition, int populationCount, IRandom random)
+        public static (List<CompositionUnit>, PopulationStatistics) CreateStartPopulation(BaseComposition baseComposition, int populationCount, IRandom random)
         {
-            List<CompositionUnit> population = new List<CompositionUnit>();
+            List<CompositionUnit> population = new();
             for (int i = 0; i < populationCount; i++)
             {
                 Composition composition = new Composition(baseComposition);
                 while (composition.MelodicLines.Count < compositionMelodicLineCount)
                 {
                     int melodicLineIndex = composition.MelodicLines.Count;
-                    List<Pitch> newMelodicLinePitches = new List<Pitch>();
+                    List<Pitch> newMelodicLinePitches = new();
                     for (int j = 0; j < composition.Length; j++)
                         newMelodicLinePitches.Add(GetRandomPitchFromFunctionForVoice(composition.Functions[j], composition.Key, melodicLineIndex, random));
 
@@ -108,12 +108,12 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                 population.Add(new CompositionUnit(composition, 0));
             }
 
-            return population;
+            return (population, CalculatePopulationStatistics(population));
         }
 
-        public static List<CompositionUnit> CreateNextGeneration(List<CompositionUnit> population, IRandom random)
+        public static (List<CompositionUnit>, PopulationStatistics) CreateNextGeneration(List<CompositionUnit> population, IRandom random)
         {
-            List<CompositionUnit> newPopulation = new List<CompositionUnit>();
+            List<CompositionUnit> newPopulation = new();
             for (int i = 0; i < population.Count - eliteSize; i++)
                 newPopulation.Add(CreateNextUnit(population, random));
 
@@ -122,7 +122,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             for (int i = 1; i <= eliteSize; i++)
                 newPopulation.Add(new CompositionUnit(population[^i].Composition, population[^i].PopulationNumber + 1));
 
-            return newPopulation;
+            return (newPopulation, CalculatePopulationStatistics(newPopulation));
         }
 
         private static CompositionUnit CreateNextUnit(List<CompositionUnit> population, IRandom random)
@@ -152,6 +152,28 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             selectedPitch.Octave = minOctave + octaveOffset;
 
             return selectedPitch;
+        }
+
+        private static PopulationStatistics CalculatePopulationStatistics(List<CompositionUnit> population)
+        {
+            PopulationStatistics populationStatistics = new();
+            populationStatistics.IterationNumber = population[0].PopulationNumber;
+            CompositionUnit bestUnit = population.Aggregate((e1, e2) => e1.Score > e2.Score ? e1 : e2);
+            populationStatistics.MaxValue = bestUnit.Score;
+            populationStatistics.IsMaxCorrect = bestUnit.IsCorrect;
+            populationStatistics.BestComposition = bestUnit.Composition;
+
+            populationStatistics.Mean = population.Average(x => x.Score);
+            
+            double sumOfSquaresOfDifferences = population.Select(x => (x.Score - populationStatistics.Mean) * (x.Score - populationStatistics.Mean)).Sum();
+            populationStatistics.StandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / population.Count);
+            
+            double correctCount = population.Count(x => x.IsCorrect);
+            populationStatistics.CorrectUnitsPrecentage = correctCount / population.Count;
+
+
+
+            return populationStatistics;
         }
     }
 }
