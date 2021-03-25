@@ -24,10 +24,24 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// </summary>
         public List<(Pitch, HarmonicFunction)> PitchesAndFunctions { get; set; }
 
+        /// <summary>
+        /// Indeks podanego głosu
+        /// </summary>
+        public int VoiceIndex { get; set; }
+
         public void SaveToFile(string filePath)
         {
             string serializedClass = JsonConvert.SerializeObject(this);
             File.WriteAllText(filePath, serializedClass);
+        }
+
+        public List<HarmonicFunction> GetFunctions()
+        {
+            List<HarmonicFunction> functions = new();
+            foreach ((Pitch, HarmonicFunction) pitchAndFunction in PitchesAndFunctions)
+                functions.Add(pitchAndFunction.Item2.Copy());
+
+            return functions;
         }
 
         public static BaseComposition ReadFromFile(string filePath)

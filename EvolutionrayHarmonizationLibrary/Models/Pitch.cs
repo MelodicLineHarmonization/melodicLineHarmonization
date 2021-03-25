@@ -172,7 +172,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public override int GetHashCode()
         {
-            return Octave.GetHashCode() * Modifier.GetHashCode() * PitchValue.GetHashCode();
+            return HashCode.Combine(Octave, Modifier, PitchValue);
         }
     }
 }

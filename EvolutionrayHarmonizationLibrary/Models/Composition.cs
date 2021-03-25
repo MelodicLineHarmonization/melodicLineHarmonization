@@ -45,7 +45,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
         {
             Key = baseComposition.Key;
             List<Pitch> pitches = new();
-            MelodicLines = new();
+            MelodicLines = new() { null, null, null, null};
             Functions = new();
 
             foreach((Pitch, HarmonicFunction) el in baseComposition.PitchesAndFunctions)
@@ -54,7 +54,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 Functions.Add(el.Item2.Copy());
             }
 
-            MelodicLines.Add(new MelodicLine(pitches, false));
+            MelodicLines[baseComposition.VoiceIndex] = new MelodicLine(pitches, false);
         }
 
 
@@ -97,6 +97,20 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 composition.Functions.Add(function.Copy());
             
             return composition;
+        }
+
+        public bool IsSame(Composition composition)
+        {
+            if (MelodicLines.Count != composition.MelodicLines.Count || Length != composition.Length)
+                return false;
+
+            for (int i = 0; i < MelodicLines.Count; i++)
+                if (MelodicLines[i].IsModifiable)
+                    for (int j = 0; j < Length; j++)
+                        if (MelodicLines[i].GetPitch(j) != composition.MelodicLines[i].GetPitch(j))
+                            return false;
+
+            return true;
         }
 
         public static Composition ReadFromFile(string filePath)

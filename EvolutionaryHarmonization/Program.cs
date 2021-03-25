@@ -11,9 +11,9 @@ namespace EvolutionaryHarmonization
 {
     class Program
     {
-        private static readonly int populationCount = 1000;
+        private static readonly int populationCount = 1_000;
         private static readonly SimpleRandom random = new(new Random());
-        private static readonly int iterationCount = 1000;
+        private static readonly int iterationCount = 1_000;
 
 
         static void Main(string[] args)
@@ -29,7 +29,7 @@ namespace EvolutionaryHarmonization
                 (new Pitch { PitchValue = Pitches.F, Modifier = Modifiers.Sharp, Octave = 5 }, new HarmonicFunction { Function = Degree.V}),
                 (new Pitch { PitchValue = Pitches.G, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.I}),
             };
-            BaseComposition baseComposition = new BaseComposition { Key = Keys.G, PitchesAndFunctions = pitchesAndFunctions };
+            BaseComposition baseComposition = new() { VoiceIndex = 0, Key = Keys.G, PitchesAndFunctions = pitchesAndFunctions };
             baseComposition.SaveToFile("BaseExample.json");
 
             EvolutionSimulation evolutionSimulation = new(random);
@@ -40,6 +40,9 @@ namespace EvolutionaryHarmonization
             Console.WriteLine("Max value: " + evolutionSimulation.SimulationStatistics[^1].MaxValue);
             Console.WriteLine("Standard deviation: " + evolutionSimulation.SimulationStatistics[^1].StandardDeviation);
             Console.WriteLine("Is best correct: " + evolutionSimulation.SimulationStatistics[^1].IsMaxCorrect);
+            Console.WriteLine("Correct percentage: " + evolutionSimulation.SimulationStatistics[^1].CorrectUnitsPrecentage);
+            Console.WriteLine("Count of best: " + evolutionSimulation.SimulationStatistics[^1].CountOfBest);
+            Console.WriteLine("Different best: " + evolutionSimulation.SimulationStatistics[^1].DifferentBest);
 
             for (int i = 0; i < iterationCount; i++)
             {
@@ -49,6 +52,9 @@ namespace EvolutionaryHarmonization
                 Console.WriteLine("Max value: " + evolutionSimulation.SimulationStatistics[^1].MaxValue);
                 Console.WriteLine("Standard deviation: " + evolutionSimulation.SimulationStatistics[^1].StandardDeviation);
                 Console.WriteLine("Is best correct: " + evolutionSimulation.SimulationStatistics[^1].IsMaxCorrect);
+                Console.WriteLine("Correct percentage: " + evolutionSimulation.SimulationStatistics[^1].CorrectUnitsPrecentage);
+                Console.WriteLine("Count of best: " + evolutionSimulation.SimulationStatistics[^1].CountOfBest);
+                Console.WriteLine("Different best: " + evolutionSimulation.SimulationStatistics[^1].DifferentBest);
             }
 
             evolutionSimulation.SimulationStatistics[^1].BestComposition.SaveToFile("BestComposition.json");

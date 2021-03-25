@@ -139,5 +139,39 @@ namespace EvolutionrayHarmonizationLibrary.Models
             if ((int)pitch.Modifier > Pitch.maxPitchValue)
                 throw new ArgumentException("Application does not support triple sharp, please change key of composition.");
         }
+
+
+        public static bool operator == (HarmonicFunction left, HarmonicFunction right)
+        {
+            if (left is null || right is null)
+                return false;
+
+            return left.Function == right.Function;
+        }
+
+        public static bool operator != (HarmonicFunction left, HarmonicFunction right)
+        {
+            return !(left == right);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj is null)
+            {
+                return false;
+            }
+
+            return this == (HarmonicFunction)obj;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Function);
+        }
     }
 }

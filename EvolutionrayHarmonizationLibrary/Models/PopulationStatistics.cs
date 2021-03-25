@@ -26,6 +26,10 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public double CorrectUnitsPrecentage { get; set; }
 
+        public int CountOfBest { get; set; }
+
+        public int DifferentBest { get; set; }
+
         public Composition BestComposition { get; set; }
     }
 }
