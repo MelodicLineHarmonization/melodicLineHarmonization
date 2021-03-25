@@ -13,7 +13,7 @@ namespace EvolutionaryHarmonization
     {
         private static readonly int populationCount = 1000;
         private static readonly SimpleRandom random = new(new Random());
-        private static readonly int iterationCount = 2000;
+        private static readonly int iterationCount = 1000;
 
 
         static void Main(string[] args)
@@ -31,29 +31,28 @@ namespace EvolutionaryHarmonization
             };
             BaseComposition baseComposition = new BaseComposition { Key = Keys.G, PitchesAndFunctions = pitchesAndFunctions };
             baseComposition.SaveToFile("BaseExample.json");
-            List<PopulationStatistics> statisticsList = new();
 
-            (List<CompositionUnit> population, PopulationStatistics statistics) = EvolutionaryFunctions.CreateStartPopulation(baseComposition, populationCount, random);
-            statisticsList.Add(statistics);
+            EvolutionSimulation evolutionSimulation = new(random);
+            evolutionSimulation.CreateStartPopulation(baseComposition, populationCount);
+
             Console.WriteLine("=============================");
             Console.WriteLine("Start population statistics: ");
-            Console.WriteLine("Max value: " + statistics.MaxValue);
-            Console.WriteLine("Standard deviation: " + statistics.StandardDeviation);
-            Console.WriteLine("Is best correct: " + statistics.IsMaxCorrect);
+            Console.WriteLine("Max value: " + evolutionSimulation.SimulationStatistics[^1].MaxValue);
+            Console.WriteLine("Standard deviation: " + evolutionSimulation.SimulationStatistics[^1].StandardDeviation);
+            Console.WriteLine("Is best correct: " + evolutionSimulation.SimulationStatistics[^1].IsMaxCorrect);
 
             for (int i = 0; i < iterationCount; i++)
             {
-                (population, statistics) = EvolutionaryFunctions.CreateNextGeneration(population, random);
-                statisticsList.Add(statistics);
+                evolutionSimulation.CreateNextGeneration();
                 Console.WriteLine("=============================");
                 Console.WriteLine($"Population {i + 1} statistics: ");
-                Console.WriteLine("Max value: " + statistics.MaxValue);
-                Console.WriteLine("Standard deviation: " + statistics.StandardDeviation);
-                Console.WriteLine("Is best correct: " + statistics.IsMaxCorrect);
+                Console.WriteLine("Max value: " + evolutionSimulation.SimulationStatistics[^1].MaxValue);
+                Console.WriteLine("Standard deviation: " + evolutionSimulation.SimulationStatistics[^1].StandardDeviation);
+                Console.WriteLine("Is best correct: " + evolutionSimulation.SimulationStatistics[^1].IsMaxCorrect);
             }
 
-            statistics.BestComposition.SaveToFile("BestComposition.json");
-            string statisticsJson = JsonConvert.SerializeObject(statisticsList);
+            evolutionSimulation.SimulationStatistics[^1].BestComposition.SaveToFile("BestComposition.json");
+            string statisticsJson = JsonConvert.SerializeObject(evolutionSimulation.SimulationStatistics);
             File.WriteAllText("WholeStatistics.json", statisticsJson);
         }
     }

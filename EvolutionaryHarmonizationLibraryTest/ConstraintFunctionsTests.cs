@@ -40,7 +40,7 @@ namespace EvolutionaryHarmonizationLibraryTest
         }
 
         [Fact]
-        public void NoteCorrectResolutionReturnsTrue()
+        public void NoteCorrectInResolutionReturnsFalse()
         {
             Pitch[] firstChord = new Pitch[4]
             {
@@ -61,12 +61,12 @@ namespace EvolutionaryHarmonizationLibraryTest
             int minSemitones = -1;
             int maxSemitones = -1;
             bool resolution = ConstraintsFunctions.NoteIncorrectResolution(firstChord, secondChord, noteToResolution, minSemitones, maxSemitones);
-            Assert.True(resolution);
+            Assert.False(resolution);
 
         }
 
         [Fact]
-        public void NoteCorrectResolutionReturnsFalse()
+        public void NoteCorrectInResolutionReturnsTrue()
         {
             Pitch[] firstChord = new Pitch[4]
             {
@@ -87,7 +87,7 @@ namespace EvolutionaryHarmonizationLibraryTest
             int minSemitones = -1;
             int maxSemitones = -1;
             bool resolution = ConstraintsFunctions.NoteIncorrectResolution(firstChord, secondChord, noteToResolution, minSemitones, maxSemitones);
-            Assert.False(resolution);
+            Assert.True(resolution);
         }
 
         [Fact]

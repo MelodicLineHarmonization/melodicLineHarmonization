@@ -10,18 +10,36 @@ using System.Threading.Tasks;
 
 namespace EvolutionrayHarmonizationLibrary.Algorithm
 {
-    public static class EvolutionaryFunctions
+    public class EvolutionSimulation
     {
         private static readonly int compositionMelodicLineCount = 4;
         private static readonly int eliteSize = 3;
         private static readonly int tournamentSize = 4;
+        private static readonly double crossoverProbability = 0.8;
+        
+        private readonly IRandom random;
+        public List<CompositionUnit> Population { get; private set; }
+        public List<PopulationStatistics> SimulationStatistics { get; private set; }
+
+
+        public EvolutionSimulation(IRandom random = null)
+        {
+            if (random == null)
+                this.random = new SimpleRandom(new Random());
+            else
+                this.random = random;
+
+            SimulationStatistics = new();
+        }
+
+
 
         /// <summary>
         /// Mutacja klasyczna - szansa na mutację każdego akordu wynosi 1/(długość kompozycji).
         /// Mutacja akordu - jeden dźwięk zmieniany na inny, całkowicie losowy.
         /// </summary>
         /// <param name="composition"></param>
-        public static void MutateComposition(CompositionUnit compositionUnit, IRandom random)
+        private void MutateComposition(CompositionUnit compositionUnit)
         {
             Composition composition = compositionUnit.Composition;
             double mutationProbability = 1.0 / composition.Length;
@@ -37,7 +55,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                 {
                     int index = random.Next(0, possibleModifiyIndices.Count);
                     int melodicLineIndex = possibleModifiyIndices[index];
-                    Pitch newPitch = GetRandomPitchFromFunctionForVoice(composition.Functions[i], composition.Key, melodicLineIndex, random);
+                    Pitch newPitch = GetRandomPitchFromFunctionForVoice(composition.Functions[i], composition.Key, melodicLineIndex);
                     composition.MelodicLines[melodicLineIndex].SetPitch(i, newPitch);
                 }
 
@@ -49,7 +67,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// </summary>
         /// <param name="composition1"></param>
         /// <param name="composition2"></param>
-        public static CompositionUnit CrossoverCompositions(CompositionUnit compositionUnit1, CompositionUnit compositionUnit2, IRandom random)
+        private CompositionUnit CrossoverCompositions(CompositionUnit compositionUnit1, CompositionUnit compositionUnit2)
         {
             if (compositionUnit1.PopulationNumber != compositionUnit2.PopulationNumber)
                 throw new ArgumentException("Cannot crossover compositions from different populations.");
@@ -70,72 +88,80 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             return new CompositionUnit(childComposition, compositionUnit1.PopulationNumber + 1);
         }
 
-        public static CompositionUnit CompositionSelection(List<CompositionUnit> population, IRandom random)
+        private CompositionUnit CompositionSelection()
         {
             int[] indices = new int[tournamentSize];
             for (int i = 0; i < tournamentSize; i++)
             {
-                int index = random.Next(0, population.Count);
+                int index = random.Next(0, Population.Count);
                 while (indices.Contains(index))
-                    index = (index + 1) % population.Count;
+                    index = (index + 1) % Population.Count;
 
                 indices[i] = index;
             }
 
             int maxScoreIndex = 0;
             for (int i = 1; i < indices.Length; i++)
-                if (population[indices[maxScoreIndex]].Score < population[indices[i]].Score)
+                if (Population[indices[maxScoreIndex]].Score < Population[indices[i]].Score)
                     maxScoreIndex = i;
 
-            return population[indices[maxScoreIndex]];
+            return Population[indices[maxScoreIndex]];
         }
 
-        public static (List<CompositionUnit>, PopulationStatistics) CreateStartPopulation(BaseComposition baseComposition, int populationCount, IRandom random)
+        public void CreateStartPopulation(BaseComposition baseComposition, int populationCount)
         {
             List<CompositionUnit> population = new();
             for (int i = 0; i < populationCount; i++)
             {
-                Composition composition = new Composition(baseComposition);
+                Composition composition = new(baseComposition);
                 while (composition.MelodicLines.Count < compositionMelodicLineCount)
                 {
                     int melodicLineIndex = composition.MelodicLines.Count;
                     List<Pitch> newMelodicLinePitches = new();
                     for (int j = 0; j < composition.Length; j++)
-                        newMelodicLinePitches.Add(GetRandomPitchFromFunctionForVoice(composition.Functions[j], composition.Key, melodicLineIndex, random));
+                        newMelodicLinePitches.Add(GetRandomPitchFromFunctionForVoice(composition.Functions[j], composition.Key, melodicLineIndex));
 
                     composition.MelodicLines.Add(new MelodicLine(newMelodicLinePitches, true));
                 }
                 population.Add(new CompositionUnit(composition, 0));
             }
 
-            return (population, CalculatePopulationStatistics(population));
+            Population = population;
+            SimulationStatistics.Add(CalculatePopulationStatistics());
         }
 
-        public static (List<CompositionUnit>, PopulationStatistics) CreateNextGeneration(List<CompositionUnit> population, IRandom random)
+        public void CreateNextGeneration()
         {
             List<CompositionUnit> newPopulation = new();
-            for (int i = 0; i < population.Count - eliteSize; i++)
-                newPopulation.Add(CreateNextUnit(population, random));
+            for (int i = 0; i < Population.Count - eliteSize; i++)
+                newPopulation.Add(CreateNextUnit());
 
-            population.Sort((e1, e2) => e1.Score.CompareTo(e2.Score));
+            Population.Sort((e1, e2) => e1.Score.CompareTo(e2.Score));
 
             for (int i = 1; i <= eliteSize; i++)
-                newPopulation.Add(new CompositionUnit(population[^i].Composition, population[^i].PopulationNumber + 1));
+                newPopulation.Add(new CompositionUnit(Population[^i].Composition, Population[^i].PopulationNumber + 1));
 
-            return (newPopulation, CalculatePopulationStatistics(newPopulation));
+            Population = newPopulation;
+            SimulationStatistics.Add(CalculatePopulationStatistics());
         }
 
-        private static CompositionUnit CreateNextUnit(List<CompositionUnit> population, IRandom random)
+        private CompositionUnit CreateNextUnit()
         {
-            CompositionUnit unit1 = CompositionSelection(population, random);
-            CompositionUnit unit2 = CompositionSelection(population, random);
-            CompositionUnit childUnit = CrossoverCompositions(unit1, unit2, random);
-            MutateComposition(childUnit, random);
+            CompositionUnit unit1 = CompositionSelection();
+            CompositionUnit childUnit;
+            if (random.NextDouble() <= crossoverProbability)
+            {
+                CompositionUnit unit2 = CompositionSelection();
+                childUnit = CrossoverCompositions(unit1, unit2);
+            }
+            else
+                childUnit = new CompositionUnit(unit1.Composition.Copy(), unit1.PopulationNumber + 1);
 
+            MutateComposition(childUnit);
             return childUnit;
         }
 
-        private static Pitch GetRandomPitchFromFunctionForVoice(HarmonicFunction harmonicFunction, Keys key, int voiceIndex, IRandom random)
+        private Pitch GetRandomPitchFromFunctionForVoice(HarmonicFunction harmonicFunction, Keys key, int voiceIndex)
         {
             List<PitchInChord> possiblePitches = harmonicFunction.GetPitchesInFunction(key);
             int pitchIndex = random.Next(0, possiblePitches.Count);
@@ -154,24 +180,27 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             return selectedPitch;
         }
 
-        private static PopulationStatistics CalculatePopulationStatistics(List<CompositionUnit> population)
+        private PopulationStatistics CalculatePopulationStatistics()
         {
             PopulationStatistics populationStatistics = new();
-            populationStatistics.IterationNumber = population[0].PopulationNumber;
-            CompositionUnit bestUnit = population.Aggregate((e1, e2) => e1.Score > e2.Score ? e1 : e2);
+            populationStatistics.IterationNumber = Population[0].PopulationNumber;
+            CompositionUnit bestUnit = Population.Aggregate((e1, e2) => e1.Score > e2.Score ? e1 : e2);
             populationStatistics.MaxValue = bestUnit.Score;
+            populationStatistics.AbsoluteMaxValue = bestUnit.AbsoluteScore;
             populationStatistics.IsMaxCorrect = bestUnit.IsCorrect;
             populationStatistics.BestComposition = bestUnit.Composition;
 
-            populationStatistics.Mean = population.Average(x => x.Score);
+            populationStatistics.Mean = Population.Average(x => x.Score);
             
-            double sumOfSquaresOfDifferences = population.Select(x => (x.Score - populationStatistics.Mean) * (x.Score - populationStatistics.Mean)).Sum();
-            populationStatistics.StandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / population.Count);
-            
-            double correctCount = population.Count(x => x.IsCorrect);
-            populationStatistics.CorrectUnitsPrecentage = correctCount / population.Count;
+            double sumOfSquaresOfDifferences = Population.Select(x => (x.Score - populationStatistics.Mean) * (x.Score - populationStatistics.Mean)).Sum();
+            populationStatistics.StandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / Population.Count);
 
+            populationStatistics.AbsoulteMean = Population.Average(x => x.AbsoluteScore);
+            sumOfSquaresOfDifferences = Population.Select(x => (x.AbsoluteScore - populationStatistics.AbsoulteMean) * (x.AbsoluteScore - populationStatistics.AbsoulteMean)).Sum();
+            populationStatistics.StandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / Population.Count);
 
+            double correctCount = Population.Count(x => x.IsCorrect);
+            populationStatistics.CorrectUnitsPrecentage = correctCount / Population.Count;
 
             return populationStatistics;
         }

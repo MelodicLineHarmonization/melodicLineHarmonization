@@ -58,6 +58,32 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 }
         }
 
+        /// <summary>
+        /// Wyznacza wszystkie wartości oktaw dla nuty i przedziału.
+        /// </summary>
+        /// <param name="pitch"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public static List<Pitch> GetPossibleOctavesInRange(Pitch pitch, Pitch min, Pitch max)
+        {
+            List<Pitch> pitches = new();
+            Pitch basePitch = new() { Modifier = pitch.Modifier, Octave = min.Octave, PitchValue = pitch.PitchValue };
+            int minOctave = Interval.GetPitchesDifferenceInSemitones(basePitch, min) >= 0 ? min.Octave : min.Octave + 1;
+            basePitch.Octave = max.Octave;
+            int maxOctave = Interval.GetPitchesDifferenceInSemitones(basePitch, max) <= 0 ? max.Octave : max.Octave - 1;
+            for (int i = minOctave; i <= maxOctave; i++)
+                pitches.Add(new() { Modifier = pitch.Modifier, PitchValue = pitch.PitchValue, Octave = i });
+
+            return pitches;
+        }
+
+        /// <summary>
+        /// Oblicza odległość między dźwiękami, nie uwzględniając modyfikatorów
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <returns></returns>
         public static int GetPitchValueDistance(Pitch first, Pitch second)
         {
             int[] octaves = new int[2] { first.Octave, second.Octave };
@@ -97,6 +123,9 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public static bool operator ==(Pitch left, Pitch right)
         {
+            if (left is null || right is null)
+                return false;
+
             if (left.Modifier == right.Modifier && left.PitchValue == right.PitchValue && (left.Octave == right.Octave || left.Octave == 0 || right.Octave == 0))
                 return true;
 
@@ -143,7 +172,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public override int GetHashCode()
         {
-            return Octave.GetHashCode() + Modifier.GetHashCode() + PitchValue.GetHashCode();
+            return Octave.GetHashCode() * Modifier.GetHashCode() * PitchValue.GetHashCode();
         }
     }
 }

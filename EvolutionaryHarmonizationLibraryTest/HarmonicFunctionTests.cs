@@ -98,5 +98,13 @@ namespace EvolutionaryHarmonizationLibraryTest
             Assert.Equal(Pitches.A, pitches[2].Pitch.PitchValue);
             Assert.Equal(0, pitches[2].Pitch.Octave);
         }
+
+        [Fact]
+        public void GetAllInversionsKeyCDegreeIReturns136()
+        {
+            HarmonicFunction harmonicFunction = new() { Function = Degree.I };
+            List<Pitch[]> inversions = harmonicFunction.GetAllCorrectInversions(Keys.C);
+            Assert.Equal(136, inversions.Count);
+        }
     }
 }

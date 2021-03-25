@@ -12,9 +12,15 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public double StandardDeviation { get; set; }
 
+        public double AbsoulteMean { get; set; }
+
+        public double AbsoulteStandardDeviation { get; set; }
+
         public int IterationNumber { get; set; }
 
         public double MaxValue { get; set; }
+
+        public double AbsoluteMaxValue { get; set; }
 
         public bool IsMaxCorrect { get; set; }
 

@@ -12,6 +12,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
         private double? score = null;
 
         private bool? isCorrect = null;
+
+        private double? abosolutScore = null;
         public Composition Composition { get; }
         public int PopulationNumber { get; init; }
 
@@ -22,7 +24,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 if (score.HasValue)
                     return score.Value;
 
-                (score, isCorrect) = CalculateValue();
+                (score, abosolutScore, isCorrect) = CalculateValue();
                 return score.Value;
             }
         }
@@ -34,8 +36,20 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 if (isCorrect.HasValue)
                     return isCorrect.Value;
 
-                (score, isCorrect) = CalculateValue();
+                (score, abosolutScore, isCorrect) = CalculateValue();
                 return isCorrect.Value;
+            }
+        }
+
+        public double AbsoluteScore
+        {
+            get
+            {
+                if (abosolutScore.HasValue)
+                    return abosolutScore.Value;
+
+                (score, abosolutScore, isCorrect) = CalculateValue();
+                return abosolutScore.Value;
             }
         }
 
@@ -47,10 +61,10 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public void RecalculateScore()
         {
-            (score, isCorrect) = CalculateValue();
+            (score, abosolutScore, isCorrect) = CalculateValue();
         }
 
-        private (double, bool) CalculateValue()
+        private (double, double, bool) CalculateValue()
         {
             return GoalFunction.CalculateCompositionScore(Composition, PopulationNumber);
         }

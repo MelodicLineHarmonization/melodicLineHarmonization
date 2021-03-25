@@ -1,4 +1,5 @@
-﻿using EvolutionrayHarmonizationLibrary.Enums;
+﻿using EvolutionrayHarmonizationLibrary.Algorithm;
+using EvolutionrayHarmonizationLibrary.Enums;
 using EvolutionrayHarmonizationLibrary.Helpers;
 using System;
 using System.Collections.Generic;
@@ -44,6 +45,60 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
                 new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 2 },
             };
+        }
+
+        public List<Pitch[]> GetAllCorrectInversions(Keys key)
+        {
+            List<PitchInChord> pitches = GetPitchesInFunction(key);
+            List<Pitch>[] possiblePitchesForVoices = new List<Pitch>[MelodicLine.VoicesRange.Count];
+
+            for (int i = 0; i < possiblePitchesForVoices.Length; i++)
+                possiblePitchesForVoices[i] = new();
+
+            foreach (PitchInChord pitch in pitches)
+                for (int i = 0; i < possiblePitchesForVoices.Length; i++)
+                    possiblePitchesForVoices[i].AddRange(Pitch.GetPossibleOctavesInRange(pitch.Pitch, MelodicLine.VoicesRange[i].Min, MelodicLine.VoicesRange[i].Max));
+
+            List<Pitch[]> inversions = new() { new Pitch[MelodicLine.VoicesRange.Count] };
+            for (int i = 0; i < MelodicLine.VoicesRange.Count; i++)
+                inversions = AddNextVoice(inversions, possiblePitchesForVoices[i], pitches, i);
+
+            List<Pitch[]> objectsToRemove = new();
+            foreach (Pitch[] inversion in inversions)
+                if (ConstraintsFunctions.IncorrectPitchesInChord(inversion, pitches) != 0 || ConstraintsFunctions.VoicesCrossover(inversion) != 0)
+                    objectsToRemove.Add(inversion);
+
+            inversions.RemoveAll(o => objectsToRemove.Contains(o));
+
+            return inversions;
+        }
+
+        private List<Pitch[]> AddNextVoice(List<Pitch[]> buildedChords, List<Pitch> pitchesToAdd, List<PitchInChord> pitchesCount, int voiceIndex)
+        {
+            List<Pitch[]> newBuildedChords = new();
+            foreach (Pitch[] buildedChord in buildedChords)
+                foreach (Pitch pitchToAdd in pitchesToAdd)
+                {
+                    Pitch[] newChord = buildedChord.Select(p => p?.Copy()).ToArray();
+                    newChord[voiceIndex] = pitchToAdd.Copy();
+                    newBuildedChords.Add(newChord);
+                }
+
+            List<Pitch[]> objectsToRemove = new();
+            foreach (Pitch[] buildedChord in newBuildedChords)
+                foreach (PitchInChord pitchCount in pitchesCount)
+                {
+                    int count = buildedChord.Count(p => p != null && pitchCount.Pitch == p);
+                    if (count > pitchCount.MaximumOccurencesInChord)
+                    {
+                        objectsToRemove.Add(buildedChord);
+                        break;
+                    }
+                }
+
+            newBuildedChords.RemoveAll(o => objectsToRemove.Contains(o));
+
+            return newBuildedChords;
         }
 
         public HarmonicFunction Copy()

@@ -39,7 +39,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static readonly double beta = 1;
 
 
-        public static (double, bool) CalculateCompositionScore(Composition composition, int populationNumber)
+        public static (double, double, bool) CalculateCompositionScore(Composition composition, int populationNumber)
         {
             (double qualitySum, double constraintsWeakSum, double constraintsStrongSum) = CalculateCompostitionScoreForChord(composition);
             (double constraintsWeakSumMelodicLines , double constraintsStrongSumMelodicLines) = CalculateCompostitionScoreForMelodicLines(composition);
@@ -47,7 +47,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             constraintsWeakSum += constraintsWeakSumMelodicLines;
             constraintsStrongSum += constraintsStrongSumMelodicLines;
 
-            return (qualitySum - constraintsWeakSum - Math.Pow((C * populationNumber), alfa) * constraintsStrongSum, constraintsStrongSum == 0);
+            return (qualitySum - constraintsWeakSum - Math.Pow((C * populationNumber), alfa) * constraintsStrongSum, qualitySum - constraintsWeakSum - constraintsStrongSum, constraintsStrongSum == 0);
         }
 
         private static (double constraintsWeakSum, double constraintsStrongSum) CalculateCompostitionScoreForMelodicLines(Composition composition)
