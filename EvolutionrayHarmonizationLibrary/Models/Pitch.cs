@@ -21,12 +21,17 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Wysokość dźwięku bez modyfikatora
         /// </summary>
-        public Pitches PitchValue { get; set; }
+        public Pitches PitchValue { get; init; }
 
         /// <summary>
         /// Modyfikator wysokości dźwięku
         /// </summary>
         public Modifiers Modifier { get; set; }
+
+        /// <summary>
+        /// Wartość długości nuty
+        /// </summary>
+        public PitchLength Length { get; set; }
 
         /// <summary>
         /// Numer oktawy, w której dźwięk się znajduje.
@@ -42,7 +47,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
             {
                 PitchValue = PitchValue,
                 Modifier = Modifier,
-                Octave = Octave
+                Octave = Octave,
+                Length = Length
             };
         }
 
@@ -167,7 +173,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 return false;
             }
 
-            return this == (Pitch)obj;
+            return this == obj as Pitch;
         }
 
         public override int GetHashCode()

@@ -47,7 +47,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
             };
         }
 
-        public List<Pitch[]> GetAllCorrectInversions(Keys key)
+        public List<Pitch[]> GetAllCorrectInversions(Keys key, PitchLength pitchLength = null)
         {
             List<PitchInChord> pitches = GetPitchesInFunction(key);
             List<Pitch>[] possiblePitchesForVoices = new List<Pitch>[MelodicLine.VoicesRange.Count];
@@ -61,7 +61,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
             List<Pitch[]> inversions = new() { new Pitch[MelodicLine.VoicesRange.Count] };
             for (int i = 0; i < MelodicLine.VoicesRange.Count; i++)
-                inversions = AddNextVoice(inversions, possiblePitchesForVoices[i], pitches, i);
+                inversions = AddNextVoice(inversions, possiblePitchesForVoices[i], pitches, i, pitchLength);
 
             List<Pitch[]> objectsToRemove = new();
             foreach (Pitch[] inversion in inversions)
@@ -73,14 +73,16 @@ namespace EvolutionrayHarmonizationLibrary.Models
             return inversions;
         }
 
-        private List<Pitch[]> AddNextVoice(List<Pitch[]> buildedChords, List<Pitch> pitchesToAdd, List<PitchInChord> pitchesCount, int voiceIndex)
+        private List<Pitch[]> AddNextVoice(List<Pitch[]> buildedChords, List<Pitch> pitchesToAdd, List<PitchInChord> pitchesCount, int voiceIndex, PitchLength pitchLength = null)
         {
             List<Pitch[]> newBuildedChords = new();
             foreach (Pitch[] buildedChord in buildedChords)
                 foreach (Pitch pitchToAdd in pitchesToAdd)
                 {
                     Pitch[] newChord = buildedChord.Select(p => p?.Copy()).ToArray();
-                    newChord[voiceIndex] = pitchToAdd.Copy();
+                    Pitch newPitch = pitchToAdd.Copy();
+                    newPitch.Length = pitchLength;
+                    newChord[voiceIndex] = newPitch;
                     newBuildedChords.Add(newChord);
                 }
 
@@ -166,7 +168,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 return false;
             }
 
-            return this == (HarmonicFunction)obj;
+            return this == obj as HarmonicFunction;
         }
 
         public override int GetHashCode()

@@ -59,7 +59,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                     Pitch[] chord = GetRandomChordForFunctionAndPitch(composition.Functions[i], composition.MelodicLines[fixedLineIndex].GetPitch(i));
                     for (int lineIndex = 0; lineIndex < composition.MelodicLines.Count; lineIndex++)
                         if (composition.MelodicLines[lineIndex].IsModifiable)
-                            composition.MelodicLines[lineIndex].SetPitch(i, chord[lineIndex].Copy());
+                            composition.MelodicLines[lineIndex].SetPitch(i, chord[lineIndex]);
                 }
 
             compositionUnit.RecalculateScore();
@@ -131,7 +131,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                     Pitch[] chord = GetRandomChordForFunctionAndPitch(composition.Functions[index], composition.MelodicLines[fixedMelodicLineIndex].GetPitch(index));
                     for (int melodicLineIndex = 0; melodicLineIndex < composition.MelodicLines.Count; melodicLineIndex++)
                         if (melodicLineIndex != fixedMelodicLineIndex)
-                            composition.MelodicLines[melodicLineIndex].SetPitch(index, chord[melodicLineIndex].Copy());
+                            composition.MelodicLines[melodicLineIndex].SetPitch(index, chord[melodicLineIndex]);
                 }
                 
                 population.Add(new CompositionUnit(composition, 0));
@@ -259,8 +259,15 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         {
             int chordsCount = functionsDict[function][fixedPitch].Count;
             int randomIndex = random.Next(0, chordsCount);
+            Pitch[] chord = functionsDict[function][fixedPitch][randomIndex];
+            
+            for (int i = 0; i < chord.Length; i++)
+            {
+                chord[i] = chord[i].Copy();
+                chord[i].Length = fixedPitch.Length;
+            }
 
-            return functionsDict[function][fixedPitch][randomIndex];
+            return chord;
         }
     }
 }

@@ -27,6 +27,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
     /// <para> 12. Ruch przynajmniej 2 głosów. </para>
     /// <para> 13. Wszystkie głosy w dopuszczalnym zakresie. </para>
     /// <para> 14. Płynne prowadzenie głosów (alt, tenor), brak skoku o zbyt duży interwał. </para>
+    /// <para> 15. Brak kwinty w basie na mocnych częściach taktu. </para>
     /// </summary>
     public static class ConstraintsFunctions
     {

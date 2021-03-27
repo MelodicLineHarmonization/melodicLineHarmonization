@@ -22,6 +22,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static readonly int doubleQuintNotInBassMultiplier = 10;
         private static readonly int moreThenTwoVoicesWithoutMoveMultiplier = 40;
         private static readonly int voicesNotInAppropriateRangeMultiplier = 5;
+        private static readonly int quintInBassOnWeakDownbeatMultiplier = 0;
 
         private static readonly int augumentedIntervalMoveCountMultiplier = 100;
 
@@ -30,6 +31,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static readonly int widerThanOctaveMultiplier = 50;
         private static readonly int incorrectNoteResolutionMultiplier = 100;
         private static readonly int parallelQuintsMultiplier = 100;
+        private static readonly int quintInBassOnStrongDownbeatMultiplier = 100;
         private static readonly int allVoicesOneDirectionMultiplier = 100;
 
         private static readonly int doubleFirstInBassFirstLastChordMultiplier = 500;
@@ -70,6 +72,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
         private static (double qualitySum, double constraintsWeakSum, double constraintsStrongSum) CalculateCompostitionScoreForChord(Composition composition)
         {
+            double chordBeatNumber = 1;
             double qualitySum = 0;
             double constraintsWeakSum = 0;
             double constraintsStrongSum = 0;
@@ -83,15 +86,18 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                 Pitch[] nextChord = composition.GetChordAtPosition(i);
                 HarmonicFunction nextFunction = composition.Functions[i];
                 qualitySum += CalculateQuality(chord, nextChord);
-                constraintsWeakSum += CalculateWeakConstraintsForChords(composition.Key, chord, function, nextChord, nextFunction);
-                constraintsStrongSum += CalculateStrongConstraintsForChords(composition.Key, chord, function, nextChord, nextFunction);
+                constraintsWeakSum += CalculateWeakConstraintsForChords(composition.Key, chord, function, chordBeatNumber, composition.Downbeats, nextChord, nextFunction);
+                constraintsStrongSum += CalculateStrongConstraintsForChords(composition.Key, chord, function, chordBeatNumber, composition.Downbeats, nextChord, nextFunction);
 
+                chordBeatNumber += chord[^1].Length.GetRelativeDuration(composition.TimeSignature.Denominator);
+                if (chordBeatNumber >= (composition.TimeSignature.Numerator + 1))
+                    chordBeatNumber %= composition.TimeSignature.Numerator;
                 chord = nextChord;
                 function = nextFunction;
             }
             qualitySum += CalculateQuality(chord);
-            constraintsWeakSum += CalculateWeakConstraintsForChords(composition.Key, chord, function);
-            constraintsStrongSum += CalculateStrongConstraintsForChords(composition.Key, chord, function);
+            constraintsWeakSum += CalculateWeakConstraintsForChords(composition.Key, chord, function, chordBeatNumber, composition.Downbeats);
+            constraintsStrongSum += CalculateStrongConstraintsForChords(composition.Key, chord, function, chordBeatNumber, composition.Downbeats);
 
             constraintsStrongSum += CalculatePenulitmateChordForCorrectBass(composition);
             // Zdwojona pryma w ostatnim akordzie (akord na prymie)
@@ -122,7 +128,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             return QualityFunctions.ChordBreadth(chord) * chordBreadthMultiplier;
         }
 
-        private static double CalculateWeakConstraintsForChords(Keys key, Pitch[] chord, HarmonicFunction function, Pitch[] nextChord = null, HarmonicFunction nextFunction = null)
+        private static double CalculateWeakConstraintsForChords(Keys key, Pitch[] chord, HarmonicFunction function, double chordBeatNumber, List<double> downbeats, Pitch[] nextChord = null, HarmonicFunction nextFunction = null)
         {
             List<PitchInChord> chordPossiblePitches = function.GetPitchesInFunction(key);
 
@@ -131,20 +137,27 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             if (ConstraintsFunctions.DoubledDegree(chord, chordPossiblePitches, Degree.V))
                 doubleQuintsNotInBass = Convert.ToInt32(!ConstraintsFunctions.DegreeInBass(chord, chordPossiblePitches, Degree.V));
 
+            int quintInBassOnDownbeat = 0;
+            int index = downbeats.FindIndex(db => db == chordBeatNumber);
+            if (index != -1 && index != 0 && ConstraintsFunctions.DegreeInBass(chord, chordPossiblePitches, Degree.V)) // index == 0 -> strong constraints
+                quintInBassOnDownbeat = downbeats.Count - index;
+
             if (nextChord != null)
             {
                 List<PitchInChord> nextChordPossiblePitches = nextFunction.GetPitchesInFunction(key);
                 int followingOnQuints = Convert.ToInt32(ConstraintsFunctions.FollowingChordsOnQuint(chord, chordPossiblePitches, nextChord, nextChordPossiblePitches));
                 int moreThenTwoVoicesWithoutMove = ConstraintsFunctions.AtLeastTwoVoicesMove(chord, nextChord);
 
-                return followingOnQuints * followingOnQuintMultiplier +
-                       doubleQuintsNotInBass * doubleQuintNotInBassMultiplier +
-                       moreThenTwoVoicesWithoutMove * moreThenTwoVoicesWithoutMoveMultiplier +
-                       voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier;
+                return (followingOnQuints * followingOnQuintMultiplier) +
+                       (quintInBassOnDownbeat * quintInBassOnWeakDownbeatMultiplier) +
+                       (doubleQuintsNotInBass * doubleQuintNotInBassMultiplier) +
+                       (moreThenTwoVoicesWithoutMove * moreThenTwoVoicesWithoutMoveMultiplier) +
+                       (voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier);
             }
 
-            return doubleQuintsNotInBass * doubleQuintNotInBassMultiplier +
-                   voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier;
+            return (doubleQuintsNotInBass * doubleQuintNotInBassMultiplier) +
+                   (quintInBassOnDownbeat * quintInBassOnWeakDownbeatMultiplier) +
+                   (voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier);
         }
 
         private static double CalculateWeakConstraintsForMelodicLines(Composition composition, List<int> septimeMoveMelodicLinesIndices, List<int> smoothMelodicLinesIndices)
@@ -158,22 +171,27 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             foreach (int index in smoothMelodicLinesIndices)
                 melodicLineSmoothSum += ConstraintsFunctions.GetMelodicLineSmooth(composition.MelodicLines[index]).Item1;
 
-            return septimeMoveSum * septimMoveMultiplier +
-                   melodicLineSmoothSum * melodicLineSmoothMultiplier;
+            return (septimeMoveSum * septimMoveMultiplier) +
+                   (melodicLineSmoothSum * melodicLineSmoothMultiplier);
         }
 
-        private static double CalculateStrongConstraintsForChords(Keys key, Pitch[] chord, HarmonicFunction function, Pitch[] nextChord = null, HarmonicFunction nextFunction = null)
+        private static double CalculateStrongConstraintsForChords(Keys key, Pitch[] chord, HarmonicFunction function, double chordBeatNumber, List<double> downbeats, Pitch[] nextChord = null, HarmonicFunction nextFunction = null)
         {
             List<PitchInChord> chordPossiblePitches = function.GetPitchesInFunction(key);
             double voicesCrossoverSum = Math.Pow(ConstraintsFunctions.VoicesCrossover(chord), beta);
             double incorrectPitchesSum = Math.Pow(ConstraintsFunctions.IncorrectPitchesInChord(chord, chordPossiblePitches), beta);
             double widerThanOctaveSum = Math.Pow(ConstraintsFunctions.WiderThanOctaveSpread(chord), beta);
+
+            int quintInBassOnDownbeat = 0;
+            int index = downbeats.FindIndex(db => db == chordBeatNumber);
+            if (index == 0 && ConstraintsFunctions.DegreeInBass(chord, chordPossiblePitches, Degree.V)) // index == 0 -> strong constraints
+                quintInBassOnDownbeat = downbeats.Count - index;
+
             if (nextChord != null)
             {
                 double correctResolutionSum = 0;
                 if (function.Function == Degree.V && (nextFunction.Function == Degree.I || nextFunction.Function == Degree.VI))
                 {
-                    //tonika w basie
                     Pitch third = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.III).Pitch;
                     correctResolutionSum = Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, third, -1, -1)), beta);
                 }
@@ -181,17 +199,19 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                 double allVoicesOneDirectionSum = Math.Pow(Convert.ToInt32(ConstraintsFunctions.AllVoicesOneDirection(chord, nextChord)), beta);
 
 
-                return voicesCrossoverSum * voicesCrossoverMultiplier +
-                       incorrectPitchesSum * incorrectPitchesInChordMultiplier +
-                       widerThanOctaveSum * widerThanOctaveMultiplier +
-                       correctResolutionSum * incorrectNoteResolutionMultiplier +
-                       parallelQuintsSum * parallelQuintsMultiplier +
-                       allVoicesOneDirectionSum * allVoicesOneDirectionMultiplier;
+                return (voicesCrossoverSum * voicesCrossoverMultiplier) +
+                       (quintInBassOnDownbeat * quintInBassOnStrongDownbeatMultiplier) +
+                       (incorrectPitchesSum * incorrectPitchesInChordMultiplier) +
+                       (widerThanOctaveSum * widerThanOctaveMultiplier) +
+                       (correctResolutionSum * incorrectNoteResolutionMultiplier) +
+                       (parallelQuintsSum * parallelQuintsMultiplier) +
+                       (allVoicesOneDirectionSum * allVoicesOneDirectionMultiplier);
             }
 
-            return voicesCrossoverSum * voicesCrossoverMultiplier +
-                   incorrectPitchesSum * incorrectPitchesInChordMultiplier +
-                   widerThanOctaveSum * widerThanOctaveMultiplier;
+            return (voicesCrossoverSum * voicesCrossoverMultiplier) +
+                   (quintInBassOnDownbeat * quintInBassOnStrongDownbeatMultiplier) +
+                   (incorrectPitchesSum * incorrectPitchesInChordMultiplier) +
+                   (widerThanOctaveSum * widerThanOctaveMultiplier);
         }
 
         private static double CalculateStrongConstraintsForMelodicLines(Composition composition, List<int> melodicLinesIndices)
@@ -225,5 +245,6 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
             return 0;
         }
+
     }
 }

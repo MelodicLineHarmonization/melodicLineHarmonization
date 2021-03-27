@@ -18,7 +18,12 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Klucz, w jakim utworzona jest kompozycja
         /// </summary>
-        public Keys Key { get; set; }
+        public Keys Key { get; init; }
+
+        /// <summary>
+        /// Metrum
+        /// </summary>
+        public TimeSignature TimeSignature { get; init; }
 
         /// <summary>
         /// Lista linii melodycznych kompozycji.
@@ -27,23 +32,31 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// pod indeksem 2 zapisana partia tenoru,
         /// pod indeksem 3 zaspiana partia basu.
         /// </summary>
-        public List<MelodicLine> MelodicLines { get; set; }
+        public List<MelodicLine> MelodicLines { get; init; }
 
         /// <summary>
         /// Lista zadanych funkcji
         /// </summary>
-        public List<HarmonicFunction> Functions { get; set; }
+        public List<HarmonicFunction> Functions { get; init; }
 
         /// <summary>
         /// Długość kompozycji.
         /// </summary>
         public int Length => Functions.Count;
-        
-        
+
+        /// <summary>
+        /// Tablica wskazująca mocne części w takcie pod względem istotności. Wartości w takcie liczone są od 1.
+        /// Wartość pod indeksem 0 jest najmocniejsza, wartość pod ostatnim indeksem najsłabsza.
+        /// </summary>
+        public List<double> Downbeats { get; init; }
+
+
         public Composition() { }
         public Composition(BaseComposition baseComposition)
         {
             Key = baseComposition.Key;
+            TimeSignature = baseComposition.TimeSignature;
+            Downbeats = baseComposition.Downbeats;
             List<Pitch> pitches = new();
             MelodicLines = new() { null, null, null, null};
             Functions = new();
@@ -83,9 +96,11 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public Composition Copy()
         {
-            Composition composition = new Composition
+            Composition composition = new ()
             {
                 Key = Key,
+                TimeSignature = TimeSignature,
+                Downbeats = Downbeats,
                 MelodicLines = new(),
                 Functions = new()
             };
@@ -101,6 +116,9 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public bool IsSame(Composition composition)
         {
+            if (Key != composition.Key || TimeSignature != composition.TimeSignature)
+                return false;
+
             if (MelodicLines.Count != composition.MelodicLines.Count || Length != composition.Length)
                 return false;
 

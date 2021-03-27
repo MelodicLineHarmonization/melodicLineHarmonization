@@ -20,6 +20,11 @@ namespace EvolutionrayHarmonizationLibrary.Models
         public Keys Key { get; set; }
 
         /// <summary>
+        /// Metrum
+        /// </summary>
+        public TimeSignature TimeSignature { get; set; }
+
+        /// <summary>
         /// Lista dźwięków najwyższej linii melodycznej wraz z funkcjami
         /// </summary>
         public List<(Pitch, HarmonicFunction)> PitchesAndFunctions { get; set; }
@@ -28,6 +33,12 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// Indeks podanego głosu
         /// </summary>
         public int VoiceIndex { get; set; }
+
+        /// <summary>
+        /// Tablica wskazująca mocne części w takcie pod względem istotności.
+        /// Wartość pod indeksem 0 jest najmocniejsza, wartość pod ostatnim indeksem najsłabsza.
+        /// </summary>
+        public List<double> Downbeats { get; set; } = new List<double> { 1 };
 
         public void SaveToFile(string filePath)
         {
@@ -42,6 +53,15 @@ namespace EvolutionrayHarmonizationLibrary.Models
                 functions.Add(pitchAndFunction.Item2.Copy());
 
             return functions;
+        }
+
+        public List<Pitch> GetPitches()
+        {
+            List<Pitch> pitches = new();
+            foreach ((Pitch, HarmonicFunction) pitchAndFunction in PitchesAndFunctions)
+                pitches.Add(pitchAndFunction.Item1.Copy());
+
+            return pitches;
         }
 
         public static BaseComposition ReadFromFile(string filePath)

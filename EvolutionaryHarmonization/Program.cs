@@ -20,16 +20,16 @@ namespace EvolutionaryHarmonization
         {
             List<(Pitch, HarmonicFunction)> pitchesAndFunctions = new()
             {
-                (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.I}),
-                (new Pitch { PitchValue = Pitches.D, Modifier = Modifiers.None, Octave = 6 }, new HarmonicFunction { Function = Degree.I}),
-                (new Pitch { PitchValue = Pitches.E, Modifier = Modifiers.None, Octave = 6 }, new HarmonicFunction { Function = Degree.IV}),
-                (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.None, Octave = 6 }, new HarmonicFunction { Function = Degree.IV}),
-                (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.I}),
-                (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.V}),
-                (new Pitch { PitchValue = Pitches.F, Modifier = Modifiers.Sharp, Octave = 5 }, new HarmonicFunction { Function = Degree.V}),
-                (new Pitch { PitchValue = Pitches.G, Modifier = Modifiers.None, Octave = 5 }, new HarmonicFunction { Function = Degree.I}),
+                (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.I}),
+                (new Pitch { PitchValue = Pitches.D, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I}),
+                (new Pitch { PitchValue = Pitches.E, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.IV}),
+                (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.IV}),
+                (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I}),
+                (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.V}),
+                (new Pitch { PitchValue = Pitches.F, Modifier = Modifiers.Sharp, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.V}),
+                (new Pitch { PitchValue = Pitches.G, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.HalfNote, WithDot = true } }, new HarmonicFunction { Function = Degree.I}),
             };
-            BaseComposition baseComposition = new() { VoiceIndex = 0, Key = Keys.G, PitchesAndFunctions = pitchesAndFunctions };
+            BaseComposition baseComposition = new() { VoiceIndex = 0, Key = Keys.G, PitchesAndFunctions = pitchesAndFunctions, TimeSignature = new TimeSignature { Denominator = Values.QuarterNote, Numerator = 3}, Downbeats = new List<double> { 1 } };
             baseComposition.SaveToFile("BaseExample.json");
 
             EvolutionSimulation evolutionSimulation = new(random);
