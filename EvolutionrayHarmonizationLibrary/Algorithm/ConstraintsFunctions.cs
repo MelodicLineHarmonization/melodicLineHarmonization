@@ -22,10 +22,11 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
     /// <para> Ograniczenia słabe: </para>
     /// <para> 8. Brak semptymy w dwóch krokach (i w jednym). -> tutaj chyba jakiś wyjątek </para>
     /// <para> 9. Brak dwóch następujących akordów na kwincie. </para>
-    /// <para> 10. Zdwojenie kwinty w basie, pierwszy i ostatni akord ze zdwojoną prymą. </para>
-    /// <para> 11. Ruch przynajmniej 2 głosów. </para>
-    /// <para> 12. Wszystkie głosy w dopuszczalnym zakresie. </para>
-    /// <para> 13. Płynne prowadzenie głosów (alt, tenor), brak skoku o zbyt duży interwał. </para>
+    /// <para> 10. Poprawny dźwięk w basie (brak kwinty w basie na mocnej części taktu). </para>
+    /// <para> 11. Poprawne zdwojenie (kwinta w basie, jeśli zdwojona, pryma w basie w pierwszym i sotatnim akordzie). </para>
+    /// <para> 12. Ruch przynajmniej 2 głosów. </para>
+    /// <para> 13. Wszystkie głosy w dopuszczalnym zakresie. </para>
+    /// <para> 14. Płynne prowadzenie głosów (alt, tenor), brak skoku o zbyt duży interwał. </para>
     /// </summary>
     public static class ConstraintsFunctions
     {
@@ -222,23 +223,32 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             return false;
         }
 
-        //TODO Rozbić na dwie funkcje - sprawdzanie podwojenia + sprawdzanie basu
         /// <summary>
-        /// 10. Funkcja sprawdzająca, czy przy zdwojeniu danego stopnia, akord ma ten stopień w basie.
+        /// 10. Funkcja sprawdzająca, czy dany stopień znajduje się w basie.
         /// </summary>
-        /// <returns>Wartość boolowska określająca, czy akord ma dany stopień w basie (jeśli został zdwojone). Wartość null, jeśli dany stopień nie został zdwojony.</returns>
-        public static bool? DoubledDegreeInBass(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree)
+        /// <returns>Wartość boolowska określająca, czy akord ma dany stopień w basie.</returns>
+        public static bool DegreeInBass(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree)
+        {
+            PitchInChord pitch = possiblePitches.Find(piC => piC.DegreeInChord == degree);
+
+            return chord[^1] == pitch.Pitch;
+        }
+
+
+        /// <summary>
+        /// 11. Funkcja sprawdzająca, czy dany stopień jest zdwojony w akordzie.
+        /// </summary>
+        /// <returns>Wartość boolowska określająca, czy akord ma zdwojony dany stopień.</returns>
+        public static bool DoubledDegree(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree)
         {
             PitchInChord pitch = possiblePitches.Find(piC => piC.DegreeInChord == degree);
             int degreeCount = chord.Count(p => p == pitch.Pitch);
-            if (degreeCount >= 2)
-                return chord[^1] == pitch.Pitch;
 
-            return null;
+            return degreeCount >= 2;
         }
 
         /// <summary>
-        /// 11. Funkcja sprawdzająca, czy ruszyły się przynajmniej dwa głosy.
+        /// 12. Funkcja sprawdzająca, czy ruszyły się przynajmniej dwa głosy.
         /// </summary>
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
@@ -258,7 +268,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         }
 
         /// <summary>
-        /// 12. Funkcja sprawdzająca, czy wszystkie głosy znajdują się w dopuszczalnym zakresie.
+        /// 13. Funkcja sprawdzająca, czy wszystkie głosy znajdują się w dopuszczalnym zakresie.
         /// </summary>
         /// <param name="chord"></param>
         /// <returns>Liczba głosów znajdujących się poza swoim zakresem.</returns>
@@ -273,11 +283,10 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         }
 
         /// <summary>
-        /// 13. Funkcja określa płynność prowadzenie linii melodycznej.
+        /// 14. Funkcja określa płynność prowadzenie linii melodycznej.
         /// </summary>
         /// <returns>Zwracane są dwie wartości: łączna suma odległości półtonowych między kolejnymi dźwiękami 
         /// i liczba skoków przekraczająca maksymalny interwał</returns>
-        // TODO Sprawdzić czy działa :)
         public static (int, int) GetMelodicLineSmooth(MelodicLine melodicLine, int? maxIntervalSemitones = null)
         {
             int semitonesCount = 0;

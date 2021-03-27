@@ -103,9 +103,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static double CalculateDoubledFirst(Keys key, Pitch[] chord, HarmonicFunction function)
         {
             List<PitchInChord> possiblePitches = function.GetPitchesInFunction(key);
-            bool? doubleFirst = ConstraintsFunctions.DoubledDegreeInBass(chord, possiblePitches, Degree.I);
-
-            if (!doubleFirst.HasValue || !doubleFirst.Value)
+            bool doubleFirst = ConstraintsFunctions.DegreeInBass(chord, possiblePitches, Degree.I);
+            doubleFirst &= ConstraintsFunctions.DoubledDegree(chord, possiblePitches, Degree.I);
+            if (!doubleFirst)
                 return Math.Pow(doubleFirstInBassFirstLastChordMultiplier, beta);
 
             return 0;
@@ -127,8 +127,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             List<PitchInChord> chordPossiblePitches = function.GetPitchesInFunction(key);
 
             int voicesNotInAppropriateRange = ConstraintsFunctions.VoicesNotInAppropriateRange(chord);
-            bool? doubleQuintsInBass = ConstraintsFunctions.DoubledDegreeInBass(chord, chordPossiblePitches, Degree.V);
-            int doubleQuintsNotInBass = doubleQuintsInBass.HasValue ? Convert.ToInt32(!doubleQuintsInBass.Value) : 0;
+            int doubleQuintsNotInBass = 0;
+            if (ConstraintsFunctions.DoubledDegree(chord, chordPossiblePitches, Degree.V))
+                doubleQuintsNotInBass = Convert.ToInt32(!ConstraintsFunctions.DegreeInBass(chord, chordPossiblePitches, Degree.V));
 
             if (nextChord != null)
             {
@@ -216,9 +217,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             if (penultimateFunction.Function == Degree.IV)
             {
                 List<PitchInChord> possiblePitches = penultimateFunction.GetPitchesInFunction(composition.Key);
-                bool? doubleFirst = ConstraintsFunctions.DoubledDegreeInBass(penultimateChord, possiblePitches, Degree.V);
+                bool doubleFirst = ConstraintsFunctions.DegreeInBass(penultimateChord, possiblePitches, Degree.V);
 
-                if (!doubleFirst.HasValue || !doubleFirst.Value)
+                if (!doubleFirst)
                     return Math.Pow(doubleFirstInBassFirstLastChordMultiplier, beta);
             }
 

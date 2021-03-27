@@ -400,7 +400,7 @@ namespace EvolutionaryHarmonizationLibraryTest
         }
 
         [Fact]
-        public void DoubleDegreeInBassReturnsTrue()
+        public void DegreeInBassReturnsTrue()
         {
             Pitch[] firstChord = new Pitch[4]
             {
@@ -415,12 +415,12 @@ namespace EvolutionaryHarmonizationLibraryTest
                 new PitchInChord { Pitch = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.E }, DegreeInChord = Degree.III, MaximumOccurencesInChord = 2, MinimumOccurencesInChord = 1},
             };
 
-            bool? doubledInBass = ConstraintsFunctions.DoubledDegreeInBass(firstChord, possiblePitches, Degree.I);
+            bool? doubledInBass = ConstraintsFunctions.DegreeInBass(firstChord, possiblePitches, Degree.I);
             Assert.True(doubledInBass);
         }
 
         [Fact]
-        public void DoubleDegreeInBassReturnsFalse()
+        public void DegreeInBassReturnsFalse()
         {
             Pitch[] firstChord = new Pitch[4]
             {
@@ -435,12 +435,32 @@ namespace EvolutionaryHarmonizationLibraryTest
                 new PitchInChord { Pitch = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.E }, DegreeInChord = Degree.III, MaximumOccurencesInChord = 2, MinimumOccurencesInChord = 1},
             };
 
-            bool? doubledInBass = ConstraintsFunctions.DoubledDegreeInBass(firstChord, possiblePitches, Degree.I);
+            bool? doubledInBass = ConstraintsFunctions.DegreeInBass(firstChord, possiblePitches, Degree.I);
             Assert.False(doubledInBass);
         }
 
         [Fact]
-        public void DoubleDegreeInBassReturnsNull()
+        public void DoubleDegreeReturnsTrue()
+        {
+            Pitch[] firstChord = new Pitch[4]
+            {
+                new Pitch { Modifier = Modifiers.None, Octave = 1, PitchValue = Pitches.C },
+                new Pitch { Modifier = Modifiers.None, Octave = 1, PitchValue = Pitches.G },
+                new Pitch { Modifier = Modifiers.None, Octave = 2, PitchValue = Pitches.C },
+                new Pitch { Modifier = Modifiers.None, Octave = 1, PitchValue = Pitches.G }
+            };
+            List<PitchInChord> possiblePitches = new List<PitchInChord>
+            {
+                new PitchInChord { Pitch = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.C }, DegreeInChord = Degree.I, MaximumOccurencesInChord = 2, MinimumOccurencesInChord = 1},
+                new PitchInChord { Pitch = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.E }, DegreeInChord = Degree.III, MaximumOccurencesInChord = 2, MinimumOccurencesInChord = 1},
+            };
+
+            bool doubledInBass = ConstraintsFunctions.DoubledDegree(firstChord, possiblePitches, Degree.I);
+            Assert.True(doubledInBass);
+        }
+
+        [Fact]
+        public void DoubleDegreeReturnsFalse()
         {
             Pitch[] firstChord = new Pitch[4]
             {
@@ -455,8 +475,8 @@ namespace EvolutionaryHarmonizationLibraryTest
                 new PitchInChord { Pitch = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.E }, DegreeInChord = Degree.III, MaximumOccurencesInChord = 2, MinimumOccurencesInChord = 1},
             };
 
-            bool? doubledInBass = ConstraintsFunctions.DoubledDegreeInBass(firstChord, possiblePitches, Degree.I);
-            Assert.Null(doubledInBass);
+            bool doubledInBass = ConstraintsFunctions.DoubledDegree(firstChord, possiblePitches, Degree.I);
+            Assert.False(doubledInBass);
         }
 
         [Fact]
