@@ -455,7 +455,7 @@ namespace EvolutionaryHarmonizationLibraryTest
                 new PitchInChord { Pitch = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.E }, DegreeInChord = Degree.III, MaximumOccurencesInChord = 2, MinimumOccurencesInChord = 1},
             };
 
-            bool doubledInBass = ConstraintsFunctions.DoubledDegree(firstChord, possiblePitches, Degree.I);
+            bool? doubledInBass = ConstraintsFunctions.MultipliedDegree(firstChord, possiblePitches, Degree.I, 2);
             Assert.True(doubledInBass);
         }
 
@@ -475,7 +475,7 @@ namespace EvolutionaryHarmonizationLibraryTest
                 new PitchInChord { Pitch = new Pitch { Modifier = Modifiers.None, Octave = 0, PitchValue = Pitches.E }, DegreeInChord = Degree.III, MaximumOccurencesInChord = 2, MinimumOccurencesInChord = 1},
             };
 
-            bool doubledInBass = ConstraintsFunctions.DoubledDegree(firstChord, possiblePitches, Degree.I);
+            bool? doubledInBass = ConstraintsFunctions.MultipliedDegree(firstChord, possiblePitches, Degree.I, 2);
             Assert.False(doubledInBass);
         }
 

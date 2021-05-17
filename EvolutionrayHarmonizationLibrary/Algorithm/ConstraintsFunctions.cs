@@ -23,11 +23,12 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
     /// <para> 8. Brak semptymy w dwóch krokach (i w jednym). -> tutaj chyba jakiś wyjątek </para>
     /// <para> 9. Brak dwóch następujących akordów na kwincie. </para>
     /// <para> 10. Poprawny dźwięk w basie (brak kwinty w basie na mocnej części taktu). </para>
-    /// <para> 11. Poprawne zdwojenie (kwinta w basie, jeśli zdwojona, pryma w basie w pierwszym i sotatnim akordzie). </para>
+    /// <para> 11. Poprawne zdwojenie (kwinta w basie, jeśli zdwojona, pryma w basie w pierwszym i os   tatnim akordzie). </para>
     /// <para> 12. Ruch przynajmniej 2 głosów. </para>
     /// <para> 13. Wszystkie głosy w dopuszczalnym zakresie. </para>
     /// <para> 14. Płynne prowadzenie głosów (alt, tenor), brak skoku o zbyt duży interwał. </para>
-    /// <para> 15. Brak kwinty w basie na mocnych częściach taktu. </para>
+    /// <para> 15. Ruch basu. </para>
+    /// <para> 16. Brak zbyt dużych ruchów na przestrzeni dwóch dźwięków (bas). </para>
     /// </summary>
     public static class ConstraintsFunctions
     {
@@ -240,12 +241,15 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         /// 11. Funkcja sprawdzająca, czy dany stopień jest zdwojony w akordzie.
         /// </summary>
         /// <returns>Wartość boolowska określająca, czy akord ma zdwojony dany stopień.</returns>
-        public static bool DoubledDegree(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree)
+        public static bool? MultipliedDegree(Pitch[] chord, List<PitchInChord> possiblePitches, Degree degree, int count)
         {
+            if (possiblePitches.Count > 3)
+                return null;
+
             PitchInChord pitch = possiblePitches.Find(piC => piC.DegreeInChord == degree);
             int degreeCount = chord.Count(p => p == pitch.Pitch);
 
-            return degreeCount >= 2;
+            return degreeCount >= count;
         }
 
         /// <summary>
@@ -301,6 +305,37 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             }
 
             return (semitonesCount, exceedingIntervals);
+        }
+
+        /// <summary>
+        /// 15. Ruch basu.
+        /// </summary>
+        /// <param name="chord"></param>
+        /// <param name="nextChord"></param>
+        /// <returns>Boolowska wartość, określająca, czy bas się ruszył</returns>
+        public static bool BassMove(Pitch[] chord, Pitch[] nextChord)
+        {
+            return Interval.GetPitchesDifferenceInSemitones(chord[^1], nextChord[^1]) != 0;
+        }
+        
+        /// <summary>
+        /// 16. Funkcja określa czy w dwóch ruchach w danej linii melodycznej został przekroczony zadany interwał.
+        /// </summary>
+        /// <param name="melodicLine"></param>
+        /// <param name="maxMoveInSemitones"></param>
+        /// <returns></returns>
+        public static int MelodicLineMaxMoveInTwo(MelodicLine melodicLine, int maxMoveInSemitones)
+        {
+            List<int> moves = new();
+            for (int i = 0; i < melodicLine.Length - 1; i++)
+                moves.Add(Interval.GetPitchesDifferenceInSemitones(melodicLine.GetPitch(i), melodicLine.GetPitch(i + 1)));
+
+            int bigerThenMaxMove = 0;
+            for (int i = 0; i < moves.Count - 1; i++)
+                if (Math.Abs(moves[i]) + Math.Abs(moves[i + 1]) > maxMoveInSemitones)
+                    bigerThenMaxMove++;
+
+            return bigerThenMaxMove;
         }
     }
 }

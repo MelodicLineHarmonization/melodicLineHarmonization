@@ -19,6 +19,11 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// </summary>
         public Degree Function { get; set; }
 
+        /// <summary>
+        /// Dźwięk dodany do funkcji, jeśli null, funkcja nie ma dźwięków dodanych.
+        /// </summary>
+        public Degree? AddedDegree { get; set; }
+
 
         /// <summary>
         /// Bazowa funckja zwracająca trójdźwięk zbudowany na stopniu wskazanym przez funkcję.
@@ -34,17 +39,56 @@ namespace EvolutionrayHarmonizationLibrary.Models
             int thirdPitchNumber = GetRealNumberOfPitch(secondPitchNumber + 2);
 
             Pitch firstPitch = ApplyKeySigns(firstPitchNumber, keySigns);
+            if (isMoll && Function == Degree.II)
+                LowerBySemitone(firstPitch); //SII obniżonego
+
             Pitch secondPitch = ApplyKeySigns(secondPitchNumber, keySigns);
-            if (isMoll)
+            if (isMoll && Function == Degree.V)
                 RaiseBySemitone(secondPitch);
             Pitch thirdPitch = ApplyKeySigns(thirdPitchNumber, keySigns);
 
-            return new List<PitchInChord>
+            if (AddedDegree == null)
+                return new List<PitchInChord>
+                {
+                    new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = (Function == Degree.II || Function == Degree.VI) ? 1 : Function == Degree.I ? 3 : 2 },
+                    new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = (Function == Degree.II || Function == Degree.VI) ? 2 : 1 },
+                    new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = Function == Degree.I ? 0 : 1, MaximumOccurencesInChord = (Function == Degree.II || Function == Degree.VI) ? 1 : 2 },
+                };
+            else
             {
-                new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 2 },
-                new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
-                new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 2 },
-            };
+                if (AddedDegree.Value == Degree.IX)
+                {
+                    int fourthPitchNumber = GetRealNumberOfPitch(thirdPitchNumber + 2);
+                    int fifthPitchNumber = GetRealNumberOfPitch(fourthPitchNumber + 2);
+
+                    Pitch fourthPitch = ApplyKeySigns(fourthPitchNumber, keySigns);
+                    Pitch fifthPitch = ApplyKeySigns(fifthPitchNumber, keySigns);
+                    if (!isMoll)
+                        LowerBySemitone(fifthPitch);
+
+                    return new List<PitchInChord>
+                    {
+                        new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 0, MaximumOccurencesInChord = 1 },
+                        new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
+                        new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = 0, MaximumOccurencesInChord = 1 },
+                        new PitchInChord { Pitch = fourthPitch, DegreeInChord = Degree.VII, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
+                        new PitchInChord { Pitch = fifthPitch, DegreeInChord = Degree.IX, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 }
+                    };
+                }
+                else
+                {
+                    int fourthPitchNumber = GetRealNumberOfPitch((int)firstPitchNumber + (int)AddedDegree.Value - 1);
+                    Pitch fourthPitch = ApplyKeySigns(fourthPitchNumber, keySigns);
+
+                    return new List<PitchInChord>
+                    {
+                        new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
+                        new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
+                        new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
+                        new PitchInChord { Pitch = fourthPitch, DegreeInChord = AddedDegree.Value, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 }
+                    };
+                }
+            }
         }
 
         public List<Pitch[]> GetAllCorrectInversions(Keys key, PitchLength pitchLength = null)
@@ -107,7 +151,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
         {
             return new HarmonicFunction
             {
-                Function = Function
+                Function = Function,
+                AddedDegree = AddedDegree
             };
         }
 
@@ -137,18 +182,29 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
             pitch.Modifier += 1;
 
-            //TODO błędny porównanie, do poprawy
-            if ((int)pitch.Modifier > Pitch.maxPitchValue)
+            if ((int)pitch.Modifier > (int)Modifiers.DoubleSharp)
                 throw new ArgumentException("Application does not support triple sharp, please change key of composition.");
         }
 
+        private void LowerBySemitone(Pitch pitch)
+        {
+            if (pitch.Modifier == Modifiers.Natural)
+                throw new ArgumentOutOfRangeException($"Modifier cannot be Natural when pitch is lowerd by semitone.");
 
+            if (pitch.Modifier == Modifiers.None)
+                pitch.Modifier = Modifiers.Flat;
+            else
+                pitch.Modifier -= 1;
+        
+            if ((int)pitch.Modifier < (int)Modifiers.DoubleFlat)
+                throw new ArgumentException("Application does not support triple flat, please change key of composition.");
+        }
         public static bool operator == (HarmonicFunction left, HarmonicFunction right)
         {
             if (left is null || right is null)
                 return false;
 
-            return left.Function == right.Function;
+            return left.Function == right.Function && left.AddedDegree == right.AddedDegree;
         }
 
         public static bool operator != (HarmonicFunction left, HarmonicFunction right)
@@ -173,7 +229,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Function);
+            return HashCode.Combine(Function, AddedDegree);
         }
     }
 }

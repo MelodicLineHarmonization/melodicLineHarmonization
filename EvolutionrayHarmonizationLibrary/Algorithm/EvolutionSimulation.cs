@@ -14,27 +14,38 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
     {
         private static readonly int eliteSize = 3;
         private static readonly int tournamentSize = 4;
-        private static readonly double crossoverProbability = 0.8;
-        
+        private readonly double crossoverProbability = 0.8;
+        private readonly double basicWorstTournamentParticipantProbability = 0.3;
+        private readonly double mutationFractionProbability = 1;
+
         private readonly IRandom random;
 
+        private List<double> tournamentWinningProbabilities;
         private Dictionary<HarmonicFunction, Dictionary<Pitch, List<Pitch[]>>> functionsDict;
 
         public List<CompositionUnit> Population { get; private set; }
         public List<PopulationStatistics> SimulationStatistics { get; private set; }
 
 
-        public EvolutionSimulation(IRandom random = null)
+        public EvolutionSimulation(IRandom random = null, double crossoverProbability = 0.8, 
+            double basicWorstTournamentParticipantProbability = 0.3, double mutationFractionProbability = 1.2)
         {
+            this.crossoverProbability = crossoverProbability;
+            this.basicWorstTournamentParticipantProbability = basicWorstTournamentParticipantProbability;
+            this.mutationFractionProbability = mutationFractionProbability;
+            CreateTournamentProbabilites();
             if (random == null)
-                this.random = new SimpleRandom(new Random());
+                this.random = new SimpleRandom(new Random().Next());
             else
                 this.random = random;
 
             SimulationStatistics = new();
         }
 
-
+        public (int seed, double crossoverProbability, double mutationFractionProbability, double basicWorstTournamentParticipantProbability) GetSimulationParameters()
+        {
+            return (random.GetSeed(), crossoverProbability, mutationFractionProbability, basicWorstTournamentParticipantProbability);
+        }
 
         /// <summary>
         /// Mutacja klasyczna - szansa na mutację każdego akordu wynosi 1/(długość kompozycji).
@@ -44,7 +55,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private void MutateComposition(CompositionUnit compositionUnit)
         {
             Composition composition = compositionUnit.Composition;
-            double mutationProbability = 1.0 / composition.Length;
+            double mutationProbability = mutationFractionProbability / composition.Length;
             int fixedLineIndex = -1;
             for (int lineIndex = 0; lineIndex < composition.MelodicLines.Count; lineIndex++)
                 if (!composition.MelodicLines[lineIndex].IsModifiable)
@@ -105,12 +116,14 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                 indices[i] = index;
             }
 
-            int maxScoreIndex = 0;
-            for (int i = 1; i < indices.Length; i++)
-                if (Population[indices[maxScoreIndex]].Score < Population[indices[i]].Score)
-                    maxScoreIndex = i;
+            Array.Sort(indices, (i1, i2) => Population[i1].Score.CompareTo(Population[i2].Score));
+            double winner = random.NextDouble();
+            int winnerIndex = 0;
+            while (winner < tournamentWinningProbabilities[winnerIndex])
+                winnerIndex++;
 
-            return Population[indices[maxScoreIndex]];
+
+            return Population[indices[^(winnerIndex + 1)]];
         }
 
         public void CreateStartPopulation(BaseComposition baseComposition, int populationCount)
@@ -199,8 +212,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             populationStatistics.MaxValue = bestUnit.Score;
             populationStatistics.AbsoluteMaxValue = bestUnit.AbsoluteScore;
             populationStatistics.IsMaxCorrect = bestUnit.IsCorrect;
-            populationStatistics.BestComposition = bestUnit.Composition;
-
+            
             populationStatistics.CountOfBest = Population.Count(x => x.Score == populationStatistics.MaxValue);
             
             List<Composition> differentCompositions = new();
@@ -218,7 +230,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                     if (isNew)
                         differentCompositions.Add(Population[i].Composition);
                 }
-            populationStatistics.DifferentBest = differentCompositions.Count;
+            populationStatistics.BestCompositions = differentCompositions;
 
 
             populationStatistics.Mean = Population.Average(x => x.Score);
@@ -226,9 +238,9 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             double sumOfSquaresOfDifferences = Population.Select(x => (x.Score - populationStatistics.Mean) * (x.Score - populationStatistics.Mean)).Sum();
             populationStatistics.StandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / Population.Count);
 
-            populationStatistics.AbsoulteMean = Population.Average(x => x.AbsoluteScore);
-            sumOfSquaresOfDifferences = Population.Select(x => (x.AbsoluteScore - populationStatistics.AbsoulteMean) * (x.AbsoluteScore - populationStatistics.AbsoulteMean)).Sum();
-            populationStatistics.StandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / Population.Count);
+            populationStatistics.AbsoluteMean = Population.Average(x => x.AbsoluteScore);
+            sumOfSquaresOfDifferences = Population.Select(x => (x.AbsoluteScore - populationStatistics.AbsoluteMean) * (x.AbsoluteScore - populationStatistics.AbsoluteMean)).Sum();
+            populationStatistics.AbsoluteStandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / Population.Count);
 
             double correctCount = Population.Count(x => x.IsCorrect);
             populationStatistics.CorrectUnitsPrecentage = correctCount / Population.Count;
@@ -269,5 +281,19 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
             return chord;
         }
+
+        private void CreateTournamentProbabilites()
+        {
+            tournamentWinningProbabilities = new();
+            double participantProbability = basicWorstTournamentParticipantProbability;
+            for (int i = 0; i < tournamentSize - 1; i++)
+            {
+                tournamentWinningProbabilities.Add(participantProbability);
+                participantProbability *= basicWorstTournamentParticipantProbability;
+            }
+
+            tournamentWinningProbabilities.Add(0);
+        }
+
     }
 }

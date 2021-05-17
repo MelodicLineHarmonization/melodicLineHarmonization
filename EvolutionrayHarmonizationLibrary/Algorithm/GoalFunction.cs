@@ -13,23 +13,26 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static readonly int parallelSixthsMultiplier = 10;
         private static readonly int contraryBassSopranoMoveMultiplier = 10;
         private static readonly int contraryMoveOnPerfectIntervalMultiplier = 10;
+        private static readonly int toBigBassMoveMultiplier = 25;
         private static readonly int chordBreadthMultiplier = 5;
 
         private static readonly int septimMoveMultiplier = 10;
         private static readonly int melodicLineSmoothMultiplier = 10;
 
         private static readonly int followingOnQuintMultiplier = 20;
-        private static readonly int doubleQuintNotInBassMultiplier = 10;
+        private static readonly int doubleQuintNotInBassMultiplier = 30;
         private static readonly int moreThenTwoVoicesWithoutMoveMultiplier = 40;
+        private static readonly int tripledFirstMultiplier = 200;
         private static readonly int voicesNotInAppropriateRangeMultiplier = 5;
-        private static readonly int quintInBassOnWeakDownbeatMultiplier = 0;
+        private static readonly int quintInBassOnWeakDownbeatMultiplier = 10;
+        private static readonly int withoutBassMoveMultiplier = 10;
 
         private static readonly int augumentedIntervalMoveCountMultiplier = 100;
 
         private static readonly int voicesCrossoverMultiplier = 100;
         private static readonly int incorrectPitchesInChordMultiplier = 500;
         private static readonly int widerThanOctaveMultiplier = 50;
-        private static readonly int incorrectNoteResolutionMultiplier = 100;
+        private static readonly int incorrectNoteResolutionMultiplier = 200;
         private static readonly int parallelQuintsMultiplier = 100;
         private static readonly int quintInBassOnStrongDownbeatMultiplier = 100;
         private static readonly int allVoicesOneDirectionMultiplier = 100;
@@ -44,7 +47,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         public static (double, double, bool) CalculateCompositionScore(Composition composition, int populationNumber)
         {
             (double qualitySum, double constraintsWeakSum, double constraintsStrongSum) = CalculateCompostitionScoreForChord(composition);
-            (double constraintsWeakSumMelodicLines , double constraintsStrongSumMelodicLines) = CalculateCompostitionScoreForMelodicLines(composition);
+            (double constraintsWeakSumMelodicLines, double constraintsStrongSumMelodicLines) = CalculateCompostitionScoreForMelodicLines(composition);
 
             constraintsWeakSum += constraintsWeakSumMelodicLines;
             constraintsStrongSum += constraintsStrongSumMelodicLines;
@@ -109,16 +112,24 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static double CalculateDoubledFirst(Keys key, Pitch[] chord, HarmonicFunction function)
         {
             List<PitchInChord> possiblePitches = function.GetPitchesInFunction(key);
-            bool doubleFirst = ConstraintsFunctions.DegreeInBass(chord, possiblePitches, Degree.I);
-            doubleFirst &= ConstraintsFunctions.DoubledDegree(chord, possiblePitches, Degree.I);
-            if (!doubleFirst)
+            bool firstInBass = ConstraintsFunctions.DegreeInBass(chord, possiblePitches, Degree.I);
+            bool? doubled = ConstraintsFunctions.MultipliedDegree(chord, possiblePitches, Degree.I, 2);
+
+            if (!doubled.HasValue)
+                if (firstInBass)
+                    return 0;
+                else
+                    return Math.Pow(doubleFirstInBassFirstLastChordMultiplier, beta);
+
+
+            if (!firstInBass || !doubled.Value)
                 return Math.Pow(doubleFirstInBassFirstLastChordMultiplier, beta);
 
             return 0;
         }
 
         private static double CalculateQuality(Pitch[] chord, Pitch[] nextChord = null)
-        {           
+        {
             if (nextChord != null)
                 return QualityFunctions.ParallelSixths(chord, nextChord) * parallelSixthsMultiplier +
                        QualityFunctions.ContraryMoveOnPerfectInterval(chord, nextChord) * contraryMoveOnPerfectIntervalMultiplier +
@@ -134,36 +145,51 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
             int voicesNotInAppropriateRange = ConstraintsFunctions.VoicesNotInAppropriateRange(chord);
             int doubleQuintsNotInBass = 0;
-            if (ConstraintsFunctions.DoubledDegree(chord, chordPossiblePitches, Degree.V))
+            bool? doubledQuints = ConstraintsFunctions.MultipliedDegree(chord, chordPossiblePitches, Degree.V, 2);
+            if (doubledQuints.HasValue && doubledQuints.Value)
                 doubleQuintsNotInBass = Convert.ToInt32(!ConstraintsFunctions.DegreeInBass(chord, chordPossiblePitches, Degree.V));
 
             int quintInBassOnDownbeat = 0;
             int index = downbeats.FindIndex(db => db == chordBeatNumber);
-            if (index != -1 && index != 0 && ConstraintsFunctions.DegreeInBass(chord, chordPossiblePitches, Degree.V)) // index == 0 -> strong constraints
-                quintInBassOnDownbeat = downbeats.Count - index;
+            bool quintInBass = ConstraintsFunctions.DegreeInBass(chord, chordPossiblePitches, Degree.V);
+            if (quintInBass)
+                if (index != -1 && index != 0) // index == 0 -> strong constraints
+                    quintInBassOnDownbeat = downbeats.Count - index + 1;
+                else
+                    quintInBassOnDownbeat = 1;
+
+            int tripledFirst = 0;
+            if (function.Function == Degree.I)
+                tripledFirst = Convert.ToInt32(ConstraintsFunctions.MultipliedDegree(chord, chordPossiblePitches, Degree.I, 3));
+
 
             if (nextChord != null)
             {
                 List<PitchInChord> nextChordPossiblePitches = nextFunction.GetPitchesInFunction(key);
                 int followingOnQuints = Convert.ToInt32(ConstraintsFunctions.FollowingChordsOnQuint(chord, chordPossiblePitches, nextChord, nextChordPossiblePitches));
+                int withoutBassMove = Convert.ToInt32(!ConstraintsFunctions.BassMove(chord, nextChord));
                 int moreThenTwoVoicesWithoutMove = ConstraintsFunctions.AtLeastTwoVoicesMove(chord, nextChord);
 
                 return (followingOnQuints * followingOnQuintMultiplier) +
                        (quintInBassOnDownbeat * quintInBassOnWeakDownbeatMultiplier) +
                        (doubleQuintsNotInBass * doubleQuintNotInBassMultiplier) +
                        (moreThenTwoVoicesWithoutMove * moreThenTwoVoicesWithoutMoveMultiplier) +
-                       (voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier);
+                       (voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier) +
+                       (withoutBassMove * withoutBassMoveMultiplier) +
+                       (tripledFirst * tripledFirstMultiplier);
             }
 
             return (doubleQuintsNotInBass * doubleQuintNotInBassMultiplier) +
                    (quintInBassOnDownbeat * quintInBassOnWeakDownbeatMultiplier) +
-                   (voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier);
+                   (voicesNotInAppropriateRange * voicesNotInAppropriateRangeMultiplier) +
+                   (tripledFirst * tripledFirstMultiplier);
         }
 
         private static double CalculateWeakConstraintsForMelodicLines(Composition composition, List<int> septimeMoveMelodicLinesIndices, List<int> smoothMelodicLinesIndices)
         {
             int septimeMoveSum = 0;
             int melodicLineSmoothSum = 0;
+            
 
             foreach (int index in septimeMoveMelodicLinesIndices)
                 septimeMoveSum += ConstraintsFunctions.SeptimeMove(composition.MelodicLines[index]);
@@ -171,8 +197,11 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             foreach (int index in smoothMelodicLinesIndices)
                 melodicLineSmoothSum += ConstraintsFunctions.GetMelodicLineSmooth(composition.MelodicLines[index]).Item1;
 
+            int bigBassMove = ConstraintsFunctions.MelodicLineMaxMoveInTwo(composition.MelodicLines[^1], 15); // oktawa + tercja mała = 15 półtonów
+
             return (septimeMoveSum * septimMoveMultiplier) +
-                   (melodicLineSmoothSum * melodicLineSmoothMultiplier);
+                   (melodicLineSmoothSum * melodicLineSmoothMultiplier) + 
+                   (bigBassMove * toBigBassMoveMultiplier);
         }
 
         private static double CalculateStrongConstraintsForChords(Keys key, Pitch[] chord, HarmonicFunction function, double chordBeatNumber, List<double> downbeats, Pitch[] nextChord = null, HarmonicFunction nextFunction = null)
@@ -190,10 +219,34 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             if (nextChord != null)
             {
                 double correctResolutionSum = 0;
+
+                if (function.AddedDegree != null)
+                {
+                    switch (function.AddedDegree.Value)
+                    {
+                        case Degree.VI:
+                            Pitch sixth = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.VI).Pitch;
+                            correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, sixth, -2, -1)), beta); 
+                            break;
+                        case Degree.VII:
+                            Pitch septim = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.VII).Pitch;
+                            correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, septim, 1, 2)), beta);
+                            break;
+                        case Degree.IX:
+                            septim = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.VII).Pitch;
+                            Pitch ninth = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.IX).Pitch;
+                            correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, septim, 1, 2)), beta);
+                            correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, ninth, 1, 2)), beta);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
                 if (function.Function == Degree.V && (nextFunction.Function == Degree.I || nextFunction.Function == Degree.VI))
                 {
                     Pitch third = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.III).Pitch;
-                    correctResolutionSum = Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, third, -1, -1)), beta);
+                    correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, third, -1, -1)), beta);
                 }
                 double parallelQuintsSum = Math.Pow(ConstraintsFunctions.ParallelQuintsAndOctaves(chord, nextChord), beta);
                 double allVoicesOneDirectionSum = Math.Pow(Convert.ToInt32(ConstraintsFunctions.AllVoicesOneDirection(chord, nextChord)), beta);
@@ -228,19 +281,20 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         {
             Pitch[] penultimateChord = composition.GetChordAtPosition(composition.Length - 2);
             HarmonicFunction penultimateFunction = composition.Functions[^2];
+            List<PitchInChord> possiblePitches = penultimateFunction.GetPitchesInFunction(composition.Key);
 
-            // Pryma w basie w przypadku dominanty (zdwojona jeśli 3 dźwięki)
+
+            // Pryma lub tercja w basie w przypadku dominanty (zdwojona jeśli 3 dźwięki)
             if (penultimateFunction.Function == Degree.V)
-                return CalculateDoubledFirst(composition.Key, penultimateChord, penultimateFunction);
-
-            //Kwinta w basie w przypadku subdominanty (do sprawdzenia)
-            if (penultimateFunction.Function == Degree.IV)
             {
-                List<PitchInChord> possiblePitches = penultimateFunction.GetPitchesInFunction(composition.Key);
-                bool doubleFirst = ConstraintsFunctions.DegreeInBass(penultimateChord, possiblePitches, Degree.V);
-
-                if (!doubleFirst)
+                bool? doubled = ConstraintsFunctions.MultipliedDegree(penultimateChord, possiblePitches, Degree.I, 2);
+                if (doubled.HasValue && !doubled.Value)
                     return Math.Pow(doubleFirstInBassFirstLastChordMultiplier, beta);
+
+                if (ConstraintsFunctions.DegreeInBass(penultimateChord, possiblePitches, Degree.I) || ConstraintsFunctions.DegreeInBass(penultimateChord, possiblePitches, Degree.III))
+                    return 0;
+
+                return Math.Pow(doubleFirstInBassFirstLastChordMultiplier, beta);
             }
 
             return 0;

@@ -9,11 +9,15 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
 {
     public class SimpleRandom : IRandom
     {
+        private readonly int seed;
         private readonly Random random;
-        public SimpleRandom(Random random)
+        public SimpleRandom(int seed)
         {
-            this.random = random;
+            this.seed = seed;
+            this.random = new Random(seed);
         }
+
+        public int GetSeed() => seed;
 
         public double NextDouble() => random.NextDouble();
 

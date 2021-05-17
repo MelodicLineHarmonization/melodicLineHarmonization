@@ -12,9 +12,9 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public double StandardDeviation { get; set; }
 
-        public double AbsoulteMean { get; set; }
+        public double AbsoluteMean { get; set; }
 
-        public double AbsoulteStandardDeviation { get; set; }
+        public double AbsoluteStandardDeviation { get; set; }
 
         public int IterationNumber { get; set; }
 
@@ -28,8 +28,6 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public int CountOfBest { get; set; }
 
-        public int DifferentBest { get; set; }
-
-        public Composition BestComposition { get; set; }
+        public List<Composition> BestCompositions { get; set; }
     }
 }

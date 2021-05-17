@@ -14,6 +14,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
     /// </summary>
     public class BaseComposition
     {
+        public string Name { get; set; }
+
         /// <summary>
         /// Klucz, w jakim utworzona jest kompozycja
         /// </summary>
@@ -39,6 +41,11 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// Wartość pod indeksem 0 jest najmocniejsza, wartość pod ostatnim indeksem najsłabsza.
         /// </summary>
         public List<double> Downbeats { get; set; } = new List<double> { 1 };
+
+        public int Length
+        {
+            get => PitchesAndFunctions.Count;
+        }
 
         public void SaveToFile(string filePath)
         {
