@@ -28,7 +28,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
 
         public EvolutionSimulation(IRandom random = null, double crossoverProbability = 0.8, 
-            double basicWorstTournamentParticipantProbability = 0.3, double mutationFractionProbability = 1.2)
+            double basicWorstTournamentParticipantProbability = 0.3, double mutationFractionProbability = 1)
         {
             this.crossoverProbability = crossoverProbability;
             this.basicWorstTournamentParticipantProbability = basicWorstTournamentParticipantProbability;

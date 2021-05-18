@@ -14,7 +14,7 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
         public SimpleRandom(int seed)
         {
             this.seed = seed;
-            this.random = new Random(seed);
+            random = new Random(seed);
         }
 
         public int GetSeed() => seed;

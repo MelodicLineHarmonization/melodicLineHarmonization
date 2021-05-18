@@ -5,7 +5,9 @@ using EvolutionrayHarmonizationLibrary.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace EvolutionaryHarmonization
 {
@@ -13,15 +15,15 @@ namespace EvolutionaryHarmonization
     {
         private static List<int> populationSizes = new List<int>() { 10, 100, 500, 1000, 1750, 2500, 3500, 5000 };
 
-        private static readonly int populationCount = 1_500;
+        private static readonly int populationCount = 1_000;
         private static readonly SimpleRandom random = new(new Random().Next());
-        private static readonly int iterationCount = 10_000;
+        private static readonly int iterationCount = 5000;
 
 
         static void Main(string[] args)
         {
             List<Func<BaseComposition>> funcs = new() { CreateEasya_S47Example };
-            List<int> seeds = new() { 0, 12345, 23456, 34567, 45678 };
+            List<int> seeds = new() { 0 };
             PerformTests(funcs, seeds);
         }
 
@@ -30,16 +32,18 @@ namespace EvolutionaryHarmonization
             foreach (int seed in seeds)
             {
                 Console.WriteLine($"Running tests for seed {seed}.");
-                foreach (Func<BaseComposition> compositionFunc in compositionFuncs)
-                {
-                    BaseComposition composition = compositionFunc();
-                    Console.WriteLine($"Running tests for composition {composition.Name}.");
-                    List<double> crossoverProb = GenerateSteps(0, 1, 0.1);
-                    List<double> mutationProb = GenerateSteps(0, composition.Length, 1);
-                    List<double> worstProb = GenerateSteps(0, 1, 0.1);
-                    PerformTestsForExample(composition, seed, iterationCount, populationSizes, crossoverProb, mutationProb, worstProb);
-                }
+                Parallel.ForEach(compositionFuncs, func => RunTest(func(), seed));
             }
+        }
+
+        private static void RunTest(BaseComposition composition, int seed)
+        {
+            Directory.CreateDirectory($"{composition.Name}\\Seed_{seed}");
+            Console.WriteLine($"Running tests for composition {composition.Name}.");
+            List<double> crossoverProb = GenerateSteps(0, 1, 0.1);
+            List<double> mutationProb = GenerateSteps(0, composition.Length, 1);
+            List<double> worstProb = GenerateSteps(0, 1, 0.1);
+            PerformTestsForExample(composition, seed, iterationCount, populationSizes, crossoverProb, mutationProb, worstProb);
         }
 
         private static List<double> GenerateSteps(double minValue, double maxValue, double step) 
@@ -67,45 +71,57 @@ namespace EvolutionaryHarmonization
         private static void PerformTestsForExample(BaseComposition composition, int seed, int iterationsCount, List<int> populationSizes,
             List<double> crossoverProbabilities, List<double> mutationFractionProbabilities, List<double> basicWorstTournamentParticipantProbabilities)
         {
-            string csvString = SimulationStatisticsExtension.csvStatisticsHeader;
-            
-            Console.WriteLine("Running simulations for population sizes:");
+            Console.WriteLine($"{composition.Name}: Running simulations for population sizes:");
             Console.WriteLine("=========================================");
-            foreach (int populationSize in populationSizes)
+            Directory.CreateDirectory($"{composition.Name}\\Seed_{seed}\\populationSizes");
+            Parallel.ForEach(populationSizes, size =>
             {
+                Console.WriteLine($"{composition.Name}: Simulation for size {size} started.");
+                string csvString = SimulationStatisticsExtension.csvStatisticsHeader;
                 EvolutionSimulation evolutionSimulation = new(new SimpleRandom(seed));
-                csvString += RunSimulation(composition, evolutionSimulation, populationSize, iterationsCount);
-                Console.WriteLine($"Simulation for size {populationSize} ended. Best found value is {evolutionSimulation.SimulationStatistics[^1].MaxValue}.");
-            }
-
-            Console.WriteLine("Running simulations for crossover probabilities:");
+                csvString += RunSimulation(composition, evolutionSimulation, size, iterationsCount);
+                Console.WriteLine($"{composition.Name}: Simulation for size {size} ended. Best found value is {evolutionSimulation.SimulationStatistics[^1].AbsoluteMaxValue}.");
+                File.WriteAllText($"{composition.Name}\\Seed_{seed}\\populationSizes\\Size_{size}.csv", csvString);
+            });
+                        
+            Console.WriteLine($"{composition.Name}: Running simulations for crossover probabilities:");
             Console.WriteLine("=========================================");
-            foreach (double crossoverProbability in crossoverProbabilities)
+            Directory.CreateDirectory($"{composition.Name}\\Seed_{seed}\\crossoverProbabilities");
+            Parallel.ForEach(crossoverProbabilities, crossoverProbability =>
             {
+                Console.WriteLine($"{composition.Name}: Simulation for probability {crossoverProbability} started.");
+                string csvString = SimulationStatisticsExtension.csvStatisticsHeader;
                 EvolutionSimulation evolutionSimulation = new(new SimpleRandom(seed), crossoverProbability: crossoverProbability);
-                csvString += RunSimulation(composition, evolutionSimulation, 1500, iterationsCount);
-                Console.WriteLine($"Simulation for probability {crossoverProbability} ended. Best found value is {evolutionSimulation.SimulationStatistics[^1].MaxValue}.");
-            }
+                csvString += RunSimulation(composition, evolutionSimulation, populationCount, iterationsCount);
+                Console.WriteLine($"{composition.Name}: Simulation for probability {crossoverProbability} ended. Best found value is {evolutionSimulation.SimulationStatistics[^1].AbsoluteMaxValue}.");
+                File.WriteAllText($"{composition.Name}\\Seed_{seed}\\crossoverProbabilities\\Probability_{crossoverProbability}.csv", csvString);
+            });
 
-            Console.WriteLine("Running simulations for mutation probabilities:");
+            Console.WriteLine($"{composition.Name}: Running simulations for mutation probabilities:");
             Console.WriteLine("=========================================");
-            foreach (double mutationFractionProbability in mutationFractionProbabilities)
+            Directory.CreateDirectory($"{composition.Name}\\Seed_{seed}\\mutationProbabilities");
+            Parallel.ForEach(mutationFractionProbabilities, mutationFractionProbability =>
             {
+                Console.WriteLine($"{composition.Name}: Simulation for probability {mutationFractionProbability} started.");
+                string csvString = SimulationStatisticsExtension.csvStatisticsHeader;
                 EvolutionSimulation evolutionSimulation = new(new SimpleRandom(seed), mutationFractionProbability: mutationFractionProbability);
-                csvString += RunSimulation(composition, evolutionSimulation, 1500, iterationsCount);
-                Console.WriteLine($"Simulation for fraction probability {mutationFractionProbability} ended. Best found value is {evolutionSimulation.SimulationStatistics[^1].MaxValue}.");
-            }
-
-            Console.WriteLine("Running simulations for worst tournament participant probabilities:");
+                csvString += RunSimulation(composition, evolutionSimulation, populationCount, iterationsCount);
+                Console.WriteLine($"{composition.Name}: Simulation for probability {mutationFractionProbability} ended. Best found value is {evolutionSimulation.SimulationStatistics[^1].AbsoluteMaxValue}.");
+                File.WriteAllText($"{composition.Name}\\Seed_{seed}\\mutationProbabilities\\Probability_{mutationFractionProbability}.csv", csvString);
+            });
+            
+            Console.WriteLine($"{composition.Name}: Running simulations for worst tournament participant probabilities:");
             Console.WriteLine("=========================================");
-            foreach (double basicWorstTournamentParticipantProbability in basicWorstTournamentParticipantProbabilities)
+            Directory.CreateDirectory($"{composition.Name}\\Seed_{seed}\\worstTournamentParticipantProbabilities");
+            Parallel.ForEach(basicWorstTournamentParticipantProbabilities, basicWorstTournamentParticipantProbability =>
             {
+                Console.WriteLine($"{composition.Name}: Simulation for probability {basicWorstTournamentParticipantProbability} started.");
+                string csvString = SimulationStatisticsExtension.csvStatisticsHeader;
                 EvolutionSimulation evolutionSimulation = new(new SimpleRandom(seed), basicWorstTournamentParticipantProbability: basicWorstTournamentParticipantProbability);
-                csvString += RunSimulation(composition, evolutionSimulation, 1500, iterationsCount);
-                Console.WriteLine($"Simulation for probability {basicWorstTournamentParticipantProbability} ended. Best found value is {evolutionSimulation.SimulationStatistics[^1].MaxValue}.");
-            }
-
-            File.WriteAllText($"{composition.Name}_{seed}_wholeTests.csv", csvString);
+                csvString += RunSimulation(composition, evolutionSimulation, populationCount, iterationsCount);
+                Console.WriteLine($"{composition.Name}: Simulation for probability {basicWorstTournamentParticipantProbability} ended. Best found value is {evolutionSimulation.SimulationStatistics[^1].AbsoluteMaxValue}.");
+                File.WriteAllText($"{composition.Name}\\Seed_{seed}\\worstTournamentParticipantProbabilities\\Probability_{basicWorstTournamentParticipantProbability}.csv", csvString);
+            });
         }
 
         private static BaseComposition CreateBaseExample()
