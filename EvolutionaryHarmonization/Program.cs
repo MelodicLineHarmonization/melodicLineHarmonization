@@ -16,14 +16,15 @@ namespace EvolutionaryHarmonization
         private static List<int> populationSizes = new List<int>() { 10, 100, 500, 1000, 1750, 2500, 3500, 5000 };
 
         private static readonly int populationCount = 1_000;
-        private static readonly SimpleRandom random = new(new Random().Next());
+        private static readonly SimpleRandom random = new(0);
         private static readonly int iterationCount = 5000;
 
 
         static void Main(string[] args)
         {
-            List<Func<BaseComposition>> funcs = new() { CreateEasya_S47Example };
-            List<int> seeds = new() { 0 };
+            //DetailedExampleTest();
+            List<Func<BaseComposition>> funcs = new() { CreateAllDegreesC_S276 };
+            List<int> seeds = new() { 0, 1234, 2345, 3456, 4567 };
             PerformTests(funcs, seeds);
         }
 
@@ -493,8 +494,8 @@ namespace EvolutionaryHarmonization
 
         private static void DetailedExampleTest()
         {
-            BaseComposition baseComposition = CreateEasyWithAddedC_S46Example();
-            EvolutionSimulation evolutionSimulation = new(random);
+            BaseComposition baseComposition = CreateAllDegreesC_S267();
+            EvolutionSimulation evolutionSimulation = new(random, crossoverProbability : 0.8, mutationFractionProbability : 1);
             evolutionSimulation.CreateStartPopulation(baseComposition, populationCount);
 
             Console.WriteLine("=============================");

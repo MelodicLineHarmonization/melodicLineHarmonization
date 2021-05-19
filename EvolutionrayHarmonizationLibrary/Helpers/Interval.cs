@@ -93,7 +93,8 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
                     {
                         (bool isNextInterval, _) = IsInterval(nextChord[i], nextChord[j], intervaleSemitones, intervalDistances);
 
-                        if (isNextInterval)
+                        if (isNextInterval /*&& GetPitchesDifferenceInSemitones(chord[i], nextChord[i]) != 0
+                                           && GetPitchesDifferenceInSemitones(chord[j], nextChord[j]) != 0*/)
                             intervalsCount++;
                     }
 
