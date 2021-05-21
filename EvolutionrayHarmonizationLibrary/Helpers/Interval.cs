@@ -80,7 +80,6 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
         /// <param name="chord"></param>
         /// <param name="nextChord"></param>
         /// <returns>Liczba równoległych interwałów między dwoma danymi akordami</returns>
-        // TODO Sprawdzić czy działa :)
         public static int GetParallelIntervalsCount(Pitch[] chord, Pitch[] nextChord, List<int> intervaleSemitones, List<int> intervalDistances)
         {
             int intervalsCount = 0;
@@ -93,8 +92,8 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
                     {
                         (bool isNextInterval, _) = IsInterval(nextChord[i], nextChord[j], intervaleSemitones, intervalDistances);
 
-                        if (isNextInterval /*&& GetPitchesDifferenceInSemitones(chord[i], nextChord[i]) != 0
-                                           && GetPitchesDifferenceInSemitones(chord[j], nextChord[j]) != 0*/)
+                        if (isNextInterval && GetPitchesDifferenceInSemitones(chord[i], nextChord[i]) != 0
+                                           && GetPitchesDifferenceInSemitones(chord[j], nextChord[j]) != 0)
                             intervalsCount++;
                     }
 
