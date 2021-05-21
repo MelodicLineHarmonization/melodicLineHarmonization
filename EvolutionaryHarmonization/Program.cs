@@ -22,10 +22,10 @@ namespace EvolutionaryHarmonization
 
         static void Main(string[] args)
         {
-            //DetailedExampleTest();
-            List<Func<BaseComposition>> funcs = new() { CreateAllDegreesC_S276 };
-            List<int> seeds = new() { 0, 1234, 2345, 3456, 4567 };
-            PerformTests(funcs, seeds);
+            DetailedExampleTest();
+            //List<Func<BaseComposition>> funcs = new() { CreateAllDegreesC_S276 };
+            //List<int> seeds = new() { 0, 1234, 2345, 3456, 4567 };
+            //PerformTests(funcs, seeds);
         }
 
         private static void PerformTests(List<Func<BaseComposition>> compositionFuncs, List<int> seeds)

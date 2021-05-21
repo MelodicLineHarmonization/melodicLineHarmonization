@@ -29,7 +29,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Lista dźwięków najwyższej linii melodycznej wraz z funkcjami
         /// </summary>
-        public List<(Pitch, HarmonicFunction)> PitchesAndFunctions { get; set; }
+        public List<(Pitch pitch, HarmonicFunction function)> PitchesAndFunctions { get; set; }
 
         /// <summary>
         /// Indeks podanego głosu
