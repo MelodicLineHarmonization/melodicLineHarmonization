@@ -16,8 +16,7 @@ namespace EvolutionaryHarmonization
     class Program
     {
         private static readonly int populationCount = 1_000;
-        private static readonly SimpleRandom random = new(0);
-        private static readonly int iterationCount = 5000;
+        private static readonly int iterationCount = 5_000;
 
 
         static void Main(string[] args)
