@@ -21,5 +21,20 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
 
             return csvString;
         }
+
+        public static string CreatePopulationScoresCsv(this List<PopulationStatistics> statistics)
+        {
+            string csvString = "";
+            for (int i = 0; i < 100; i++)
+            {
+                for (int j = 0; j < statistics[i].PopulationAbsoluteScores.Count; j++)
+                    csvString += $"{statistics[i].PopulationAbsoluteScores[j]};{statistics[i].PopulationCorrectness[j]};";
+
+                csvString += '\n';
+                Console.WriteLine($"{i}");
+            }
+
+            return csvString;
+        }
     }
 }

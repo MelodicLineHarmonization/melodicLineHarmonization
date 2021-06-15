@@ -229,14 +229,20 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                             correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, sixth, -2, -1)), beta); 
                             break;
                         case Degree.VII:
-                            Pitch septim = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.VII).Pitch;
-                            correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, septim, 1, 2)), beta);
+                            if (nextFunction.Function == Degree.I || nextFunction.Function == Degree.VI)
+                            {
+                                Pitch septim = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.VII).Pitch;
+                                correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, septim, 1, 2)), beta);
+                            }
                             break;
                         case Degree.IX:
-                            septim = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.VII).Pitch;
-                            Pitch ninth = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.IX).Pitch;
-                            correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, septim, 1, 2)), beta);
-                            correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, ninth, 1, 2)), beta);
+                            if (nextFunction.Function == Degree.I || nextFunction.Function == Degree.VI)
+                            {
+                                Pitch septim = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.VII).Pitch;
+                                Pitch ninth = chordPossiblePitches.Find(piC => piC.DegreeInChord == Degree.IX).Pitch;
+                                correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, septim, 1, 2)), beta);
+                                correctResolutionSum += Math.Pow(Convert.ToInt32(ConstraintsFunctions.NoteIncorrectResolution(chord, nextChord, ninth, 1, 2)), beta);
+                            }
                             break;
                         default:
                             break;

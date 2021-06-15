@@ -29,5 +29,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
         public int CountOfBest { get; set; }
 
         public List<Composition> BestCompositions { get; set; }
+
+        public List<double> PopulationAbsoluteScores { get; set; }
+        public List<int> PopulationCorrectness { get; set; }
     }
 }

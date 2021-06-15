@@ -39,9 +39,6 @@ namespace EvolutionrayHarmonizationLibrary.Models
             int thirdPitchNumber = GetRealNumberOfPitch(secondPitchNumber + 2);
 
             Pitch firstPitch = ApplyKeySigns(firstPitchNumber, keySigns);
-            if (isMoll && Function == Degree.II)
-                LowerBySemitone(firstPitch); //SII obniżonego
-
             Pitch secondPitch = ApplyKeySigns(secondPitchNumber, keySigns);
             if (isMoll && Function == Degree.V)
                 RaiseBySemitone(secondPitch);

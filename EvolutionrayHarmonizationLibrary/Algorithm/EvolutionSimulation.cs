@@ -15,8 +15,8 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
         private static readonly int eliteSize = 3;
         private static readonly int tournamentSize = 4;
         private readonly double crossoverProbability = 0.8;
-        private readonly double basicWorstTournamentParticipantProbability = 0.3;
-        private readonly double mutationFractionProbability = 1;
+        private readonly double basicWorstTournamentParticipantProbability = 0.2;
+        private readonly double mutationFractionProbability = 1.1;
 
         private readonly IRandom random;
 
@@ -28,7 +28,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
 
         public EvolutionSimulation(IRandom random = null, double crossoverProbability = 0.8, 
-            double basicWorstTournamentParticipantProbability = 0.3, double mutationFractionProbability = 1)
+            double basicWorstTournamentParticipantProbability = 0.2, double mutationFractionProbability = 1.1)
         {
             this.crossoverProbability = crossoverProbability;
             this.basicWorstTournamentParticipantProbability = basicWorstTournamentParticipantProbability;
@@ -76,12 +76,32 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             compositionUnit.RecalculateScore();
         }
 
+
+        private CompositionUnit OnePointCrossoverCompositions(CompositionUnit compositionUnit1, CompositionUnit compositionUnit2)
+        {
+            if (compositionUnit1.PopulationNumber != compositionUnit2.PopulationNumber)
+                throw new ArgumentException("Cannot crossover compositions from different populations.");
+
+            Composition composition1 = compositionUnit1.Composition;
+            Composition composition2 = compositionUnit2.Composition;
+            Composition childComposition = composition1.Copy();
+
+            int crossoverPoint = random.Next(0, childComposition.Length);
+
+            for (int i = crossoverPoint; i < childComposition.Length; i++)
+                for (int lineIndex = 0; lineIndex < childComposition.MelodicLines.Count; lineIndex++)
+                    if (childComposition.MelodicLines[lineIndex].IsModifiable)
+                        childComposition.MelodicLines[lineIndex].SetPitch(i, composition2.MelodicLines[lineIndex].GetPitch(i).Copy());
+
+            return new CompositionUnit(childComposition, compositionUnit1.PopulationNumber + 1);
+        }
+
         /// <summary>
         /// Krzyżowanie klasyczne - krzyżowanie następuje akordami (akord z jednej kompozycji może być zamieniony na akord z drugiej)
         /// </summary>
         /// <param name="composition1"></param>
         /// <param name="composition2"></param>
-        private CompositionUnit CrossoverCompositions(CompositionUnit compositionUnit1, CompositionUnit compositionUnit2)
+        private CompositionUnit ClassicCrossoverCompositions(CompositionUnit compositionUnit1, CompositionUnit compositionUnit2)
         {
             if (compositionUnit1.PopulationNumber != compositionUnit2.PopulationNumber)
                 throw new ArgumentException("Cannot crossover compositions from different populations.");
@@ -176,7 +196,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             if (random.NextDouble() <= crossoverProbability)
             {
                 CompositionUnit unit2 = CompositionSelection();
-                childUnit = CrossoverCompositions(unit1, unit2);
+                childUnit = OnePointCrossoverCompositions(unit1, unit2);
             }
             else
                 childUnit = new CompositionUnit(unit1.Composition.Copy(), unit1.PopulationNumber + 1);
@@ -214,7 +234,8 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             populationStatistics.IsMaxCorrect = bestUnit.IsCorrect;
             
             populationStatistics.CountOfBest = Population.Count(x => x.Score == populationStatistics.MaxValue);
-            
+            populationStatistics.PopulationAbsoluteScores = Population.Select(cu => cu.AbsoluteScore).ToList();
+            populationStatistics.PopulationCorrectness = Population.Select(cu => Convert.ToInt32(cu.IsCorrect)).ToList();
             List<Composition> differentCompositions = new();
             for (int i = 0; i < Population.Count; i++)
                 if (Population[i].Score == populationStatistics.MaxValue)
