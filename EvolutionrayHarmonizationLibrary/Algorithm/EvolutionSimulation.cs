@@ -12,8 +12,8 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 {
     public class EvolutionSimulation
     {
-        private static readonly int eliteSize = 3;
-        private static readonly int tournamentSize = 4;
+        private static int eliteSize = 3;
+        private static int tournamentSize = 4;
         private readonly double crossoverProbability = 0.8;
         private readonly double basicWorstTournamentParticipantProbability = 0.2;
         private readonly double mutationFractionProbability = 1.1;
@@ -28,11 +28,12 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
 
         public EvolutionSimulation(IRandom random = null, double crossoverProbability = 0.8, 
-            double basicWorstTournamentParticipantProbability = 0.2, double mutationFractionProbability = 1.1)
+            double basicWorstTournamentParticipantProbability = 0.2, double mutationFractionProbability = 1.1, int tournamentSize = 4)
         {
             this.crossoverProbability = crossoverProbability;
             this.basicWorstTournamentParticipantProbability = basicWorstTournamentParticipantProbability;
             this.mutationFractionProbability = mutationFractionProbability;
+            EvolutionSimulation.tournamentSize = tournamentSize;
             CreateTournamentProbabilites();
             if (random == null)
                 this.random = new SimpleRandom(new Random().Next());

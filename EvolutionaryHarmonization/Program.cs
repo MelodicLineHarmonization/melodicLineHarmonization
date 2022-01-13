@@ -16,18 +16,50 @@ namespace EvolutionaryHarmonization
     class Program
     {
         private static readonly int populationCount = 1_000;
-        private static readonly int iterationCount = 5_000;
+        private static readonly int iterationCountt = 5_000;
+        private static readonly List<int> seeds = new List<int> { 0, 1234, 2345, 3456, 4567 };
 
 
-        static void Main(string[] args)
+        static void Main(string[] args) 
         {
+            //RunTests(new List<Func<BaseComposition>> { CreateEasya_S47Example, CreateEasyWithAddedC_S46Example, CreateAllDegreesC_S276 }, new List<int> { 1000, 3000, 5000, 10000 });
             string path = GetFilePath();
             BaseComposition baseComposition = BaseComposition.ReadFromFile(path);
-            
+
+            //BaseComposition baseComposition = CreateEasya_S47Example();
             if (baseComposition != null)
                 RunSimulation(baseComposition);
         }
 
+
+        private static void RunTests(List<Func<BaseComposition>> compositionsToTest, List<int> iterationCounts)
+        {
+            foreach (Func<BaseComposition> baseCompositionFunc in compositionsToTest)
+            {
+                BaseComposition composition = baseCompositionFunc();
+                foreach (int iterationCount in iterationCounts)
+                {
+                    foreach (int seed in seeds)
+                    {
+                        Directory.CreateDirectory($"{composition.Name}/{seed}/iterationSizes");
+                        Console.WriteLine("=============================");
+                        Console.WriteLine($"Calculating {composition.Name} for iteration count {iterationCount} and seed {seed}");
+                        EvolutionSimulation evolutionSimulation = new EvolutionSimulation(new SimpleRandom(seed), basicWorstTournamentParticipantProbability: 0.3, mutationFractionProbability: 1);
+                        evolutionSimulation.CreateStartPopulation(composition, populationCount);
+                        for (int i = 0; i < iterationCount; i++)
+                        {
+                            if (i % 1000 == 0)
+                                Console.WriteLine(i);
+                            evolutionSimulation.CreateNextGeneration();
+                        }
+
+                        var simulationParameters = evolutionSimulation.GetSimulationParameters();
+                        string csvString = SimulationStatisticsExtension.csvStatisticsHeader + evolutionSimulation.SimulationStatistics.CreateCsvString(seed, populationCount, 4, simulationParameters.crossoverProbability, simulationParameters.mutationFractionProbability, simulationParameters.basicWorstTournamentParticipantProbability);
+                        File.WriteAllText($"{composition.Name}/{seed}/iterationSizes/Size_{iterationCount}.csv", csvString);                   
+                    }
+                }
+            }
+        }
         private static BaseComposition CreateEasyD_S73Example()
         {
             List<(Pitch, HarmonicFunction)> pitchesAndFunctions = new()
@@ -246,7 +278,7 @@ namespace EvolutionaryHarmonization
                 (new Pitch { PitchValue = Pitches.F, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.HalfNote, WithDot = true } }, new HarmonicFunction { Function = Degree.I })
             };
 
-            BaseComposition baseComposition = new() { Name = "EasyF_S108", VoiceIndex = 0, Key = Keys.F, PitchesAndFunctions = pitchesAndFunctions, TimeSignature = new TimeSignature { Denominator = Values.QuarterNote, Numerator = 3 }, Downbeats = new List<double> { 1 } };
+            BaseComposition baseComposition = new() { Name = "EasyF_S108", VoiceIndex = 0, Key = Keys.F, PitchesAndFunctions = pitchesAndFunctions, TimeSignature = new TimeSignature { Denominator = Values.QuarterNote, Numerator = 3 }, Downbeats = new List<double> { 1, 3 } };
             
             return baseComposition;
         }
@@ -316,8 +348,8 @@ namespace EvolutionaryHarmonization
             List<(Pitch, HarmonicFunction)> pitchesAndFunctions = new()
             {
                 (new Pitch { PitchValue = Pitches.G, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.I }),
-                (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.Flat, Octave = 5, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.IV }),
-                (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.Flat, Octave = 5, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.II }),
+                (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.Flat, Octave = 5, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.IV, AddedDegree = Degree.VI }),
+                (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.I }),
                 (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.Natural, Octave = 5, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.V, AddedDegree = Degree.VII }),
                 (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.VI }),
                 (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.IV }),
@@ -415,15 +447,15 @@ namespace EvolutionaryHarmonization
                 (new Pitch { PitchValue = Pitches.E, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.II }),
                 (new Pitch { PitchValue = Pitches.E, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.V }),
                 (new Pitch { PitchValue = Pitches.F, Modifier = Modifiers.Sharp, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I }),
-                (new Pitch { PitchValue = Pitches.D, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.IV }),
+                (new Pitch { PitchValue = Pitches.D, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I }),
                 (new Pitch { PitchValue = Pitches.E, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.V }),
                 (new Pitch { PitchValue = Pitches.F, Modifier = Modifiers.Sharp, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I }),
                 (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.IV }),
-                (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.Sharp, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.V, AddedDegree = Degree.IX }),
+                (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.Sharp, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.V, AddedDegree = Degree.VII }),
                 (new Pitch { PitchValue = Pitches.D, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.HalfNote, WithDot = true } }, new HarmonicFunction { Function = Degree.I }),
             };
 
-            BaseComposition baseComposition = new() { Name = "EasyWithAddedD_S73", VoiceIndex = 0, Key = Keys.D, PitchesAndFunctions = pitchesAndFunctions, TimeSignature = new TimeSignature { Denominator = Values.QuarterNote, Numerator = 3 }, Downbeats = new List<double> { 1 } };
+            BaseComposition baseComposition = new() { Name = "EasyWithAddedD_S73", VoiceIndex = 0, Key = Keys.D, PitchesAndFunctions = pitchesAndFunctions, TimeSignature = new TimeSignature { Denominator = Values.QuarterNote, Numerator = 3 }, Downbeats = new List<double> { 1, 3 } };
             
             return baseComposition;
         }
@@ -469,9 +501,9 @@ namespace EvolutionaryHarmonization
                 (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I }),
                 (new Pitch { PitchValue = Pitches.G, Modifier = Modifiers.Sharp, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.V }),
                 (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.V, AddedDegree = Degree.VII }),
-                (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I }),
-                (new Pitch { PitchValue = Pitches.D, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.IV, AddedDegree = Degree.VI }),
                 (new Pitch { PitchValue = Pitches.A, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I }),
+                (new Pitch { PitchValue = Pitches.H, Modifier = Modifiers.None, Octave = 5, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.IV, AddedDegree = Degree.VI }),
+                (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.I }),
                 (new Pitch { PitchValue = Pitches.F, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.IV }),
                 (new Pitch { PitchValue = Pitches.D, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.HalfNote } }, new HarmonicFunction { Function = Degree.V, AddedDegree = Degree.VII }),
                 (new Pitch { PitchValue = Pitches.C, Modifier = Modifiers.None, Octave = 6, Length = new PitchLength { LengthValue = Values.QuarterNote } }, new HarmonicFunction { Function = Degree.VI }),
@@ -571,7 +603,7 @@ namespace EvolutionaryHarmonization
             Console.WriteLine("Count of best: " + evolutionSimulation.SimulationStatistics[^1].CountOfBest);
             Console.WriteLine("Different best: " + evolutionSimulation.SimulationStatistics[^1].BestCompositions.Count);
 
-            for (int i = 0; i < iterationCount; i++)
+            for (int i = 0; i < iterationCountt; i++)
             {
                 evolutionSimulation.CreateNextGeneration();
                 Console.WriteLine("=============================");
@@ -593,11 +625,11 @@ namespace EvolutionaryHarmonization
 
         private static string GetFilePath()
         {
-            Console.WriteLine("Podaj ścieżkę do pliku wejściowego:");
+            Console.WriteLine("Insert file path:");
             string path = Console.ReadLine();
             while (!File.Exists(path))
             {
-                Console.WriteLine("Podany plik nieistnieje, podaj poprawną ścieżkę:");
+                Console.WriteLine("File does not exist, enter file path:");
                 path = Console.ReadLine();
             }
 
