@@ -1,4 +1,5 @@
 ﻿using EvolutionrayHarmonizationLibrary.Algorithm;
+using EvolutionrayHarmonizationLibrary.Algorithm.ModalGoalFunction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +67,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         private (double, double, bool) CalculateValue()
         {
-            return GoalFunction.CalculateCompositionScore(Composition, PopulationNumber);
+            return ModalGoalFunction.CalculateCompositionScore(Composition, PopulationNumber);
         }
 
 

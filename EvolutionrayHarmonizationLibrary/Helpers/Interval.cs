@@ -22,7 +22,10 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
         public readonly static List<int> unisonoOctavePitchDistances = new List<int> { 0 };
 
         public readonly static List<int> majorMinorSeptimeSemitones = new List<int> { 11, 10 };
+        public readonly static List<int> quartSemitones = new List<int> { 5 };
 
+        public readonly static List<int> minorThirdSemitones = new List<int> { 3 };
+        public readonly static List<int> majorThirdSemitones = new List<int> { 4 };
 
 
         /// <summary>
@@ -94,13 +97,44 @@ namespace EvolutionrayHarmonizationLibrary.Helpers
 
                         if (isNextInterval && GetPitchesDifferenceInSemitones(chord[i], nextChord[i]) != 0
                                            && GetPitchesDifferenceInSemitones(chord[j], nextChord[j]) != 0)
-                            intervalsCount++;
+
+                        {
+                            if ((chord[i] > nextChord[i] && chord[j] > nextChord[j]) || (chord[i] < nextChord[i] && chord[j] < nextChord[j])) // is parallel
+                                intervalsCount++;
+                        }
                     }
 
                 }
 
             return intervalsCount;
         }
+
+        public static int GetAntiparallelIntervalsCount(Pitch[] chord, Pitch[] nextChord, List<int> intervaleSemitones, List<int> intervalDistances)
+        {
+            int intervalsCount = 0;
+            for (int i = 0; i < chord.Length; i++)
+                for (int j = i + 1; j < chord.Length; j++)
+                {
+                    (bool isInterval, _) = IsInterval(chord[i], chord[j], intervaleSemitones, intervalDistances);
+
+                    if (isInterval)
+                    {
+                        (bool isNextInterval, _) = IsInterval(nextChord[i], nextChord[j], intervaleSemitones, intervalDistances);
+
+                        if (isNextInterval && GetPitchesDifferenceInSemitones(chord[i], nextChord[i]) != 0
+                                           && GetPitchesDifferenceInSemitones(chord[j], nextChord[j]) != 0)
+
+                        {
+                            if ((chord[i] > nextChord[i] && chord[j] < nextChord[j]) || (chord[i] < nextChord[i] && chord[j] > nextChord[j])) // is antiparallel
+                                intervalsCount++;
+                        }
+                    }
+
+                }
+
+            return intervalsCount;
+        }
+
 
         private static int GetPitchAbsoluteSemintones(Pitch a)
         {

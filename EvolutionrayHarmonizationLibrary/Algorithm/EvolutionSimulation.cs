@@ -12,11 +12,14 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 {
     public class EvolutionSimulation
     {
-        private static int eliteSize = 3;
-        private static int tournamentSize = 4;
+        private readonly int eliteSize = 3;
+        private readonly int tournamentSize = 4;
+        private static double septimChordProbability = 0.164;
         private readonly double crossoverProbability = 0.8;
         private readonly double basicWorstTournamentParticipantProbability = 0.2;
         private readonly double mutationFractionProbability = 1.1;
+
+        private readonly bool useSeptimChordsInModal = false;
 
         private readonly IRandom random;
 
@@ -28,12 +31,14 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
 
         public EvolutionSimulation(IRandom random = null, double crossoverProbability = 0.8, 
-            double basicWorstTournamentParticipantProbability = 0.2, double mutationFractionProbability = 1.1, int tournamentSize = 4)
+            double basicWorstTournamentParticipantProbability = 0.2, double mutationFractionProbability = 1.1, int tournamentSize = 4, int eliteSize = 3, bool useSeptimChordsInModal = false)
         {
+            this.eliteSize = eliteSize;
             this.crossoverProbability = crossoverProbability;
             this.basicWorstTournamentParticipantProbability = basicWorstTournamentParticipantProbability;
             this.mutationFractionProbability = mutationFractionProbability;
-            EvolutionSimulation.tournamentSize = tournamentSize;
+            this.useSeptimChordsInModal = useSeptimChordsInModal;
+            this.tournamentSize = tournamentSize;
             CreateTournamentProbabilites();
             if (random == null)
                 this.random = new SimpleRandom(new Random().Next());
@@ -68,13 +73,29 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             for (int i = 0; i < composition.Length; i++)
                 if (random.NextDouble() <= mutationProbability)
                 {
-                    Pitch[] chord = GetRandomChordForFunctionAndPitch(composition.Functions[i], composition.MelodicLines[fixedLineIndex].GetPitch(i));
+                    if (useSeptimChordsInModal && random.NextDouble() <= septimChordProbability && 
+                        CheckIfSeptimChordPossible(i, composition.Length, composition.Functions[i], composition.MelodicLines[fixedLineIndex].GetPitch(i), composition.Key))
+                        AddRemoveSeptimFromFunction(composition.Functions[i]);
+
+                        Pitch[] chord = GetRandomChordForFunctionAndPitch(composition.Functions[i], composition.MelodicLines[fixedLineIndex].GetPitch(i));
                     for (int lineIndex = 0; lineIndex < composition.MelodicLines.Count; lineIndex++)
                         if (composition.MelodicLines[lineIndex].IsModifiable)
                             composition.MelodicLines[lineIndex].SetPitch(i, chord[lineIndex]);
                 }
 
             compositionUnit.RecalculateScore();
+        }
+
+        private bool CheckIfSeptimChordPossible(int index, int compositionLength, HarmonicFunction function, Pitch melodyPitch, Keys key)
+        {
+            if (index != 0 && index != compositionLength)
+            {
+                List<PitchInChord> possiblePitches = function.GetPitchesInFunction(key);
+                if (possiblePitches.Find(piC => piC.Pitch == melodyPitch) != null)
+                    return true;
+            }
+
+            return false;
         }
 
 
@@ -90,9 +111,12 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             int crossoverPoint = random.Next(0, childComposition.Length);
 
             for (int i = crossoverPoint; i < childComposition.Length; i++)
+            {
+                childComposition.Functions[i] = composition2.Functions[i].Copy();
                 for (int lineIndex = 0; lineIndex < childComposition.MelodicLines.Count; lineIndex++)
                     if (childComposition.MelodicLines[lineIndex].IsModifiable)
                         childComposition.MelodicLines[lineIndex].SetPitch(i, composition2.MelodicLines[lineIndex].GetPitch(i).Copy());
+            }
 
             return new CompositionUnit(childComposition, compositionUnit1.PopulationNumber + 1);
         }
@@ -116,6 +140,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
                 int randComposition = random.Next(0, 2);
                 if (randComposition == 1)
                 {
+                    childComposition.Functions[i] = composition2.Functions[i].Copy();
                     for (int lineIndex = 0; lineIndex < childComposition.MelodicLines.Count; lineIndex++)
                         if (childComposition.MelodicLines[lineIndex].IsModifiable)
                             childComposition.MelodicLines[lineIndex].SetPitch(i, composition2.MelodicLines[lineIndex].GetPitch(i).Copy());
@@ -162,6 +187,10 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
 
                 for (int index = 0; index < composition.Length; index++)
                 {
+                    if (useSeptimChordsInModal && random.NextDouble() <= septimChordProbability &&
+                        CheckIfSeptimChordPossible(i, composition.Length, composition.Functions[index], composition.MelodicLines[fixedMelodicLineIndex].GetPitch(index), composition.Key))
+                        AddRemoveSeptimFromFunction(composition.Functions[index]);
+
                     Pitch[] chord = GetRandomChordForFunctionAndPitch(composition.Functions[index], composition.MelodicLines[fixedMelodicLineIndex].GetPitch(index));
                     for (int melodicLineIndex = 0; melodicLineIndex < composition.MelodicLines.Count; melodicLineIndex++)
                         if (melodicLineIndex != fixedMelodicLineIndex)
@@ -276,30 +305,42 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             foreach (HarmonicFunction function in functions)
                 if (!functionsDict.ContainsKey(function))
                 {
-                    List<Pitch[]> inversions = function.GetAllCorrectInversions(compositionKey);
-                    Dictionary<Pitch, List<Pitch[]>> inversionsDict = new();
+                    AddFunctionToDict(function, compositionKey, fixedVoiceIndex);
 
-                    foreach (Pitch[] inversion in inversions)
-                        if (inversionsDict.ContainsKey(inversion[fixedVoiceIndex]))
-                            inversionsDict[inversion[fixedVoiceIndex]].Add(inversion);
-                        else
-                            inversionsDict.Add(inversion[fixedVoiceIndex].Copy(), new List<Pitch[]> { inversion });
-
-                    functionsDict.Add(function, inversionsDict);
+                    if (useSeptimChordsInModal)
+                    {
+                        HarmonicFunction functionWithSeptim = function.Copy();
+                        functionWithSeptim.AddedDegree = Degree.VII;
+                        AddFunctionToDict(functionWithSeptim, compositionKey, fixedVoiceIndex);
+                    }
                 }
         }
 
         private Pitch[] GetRandomChordForFunctionAndPitch(HarmonicFunction function, Pitch fixedPitch)
         {
-            int chordsCount = functionsDict[function][fixedPitch].Count;
+            if (!functionsDict.ContainsKey(function))
+                throw new ArgumentException("Function not presented in dictionary!");
+
+            List<Pitch[]> possibleInversions;
+
+            if (!functionsDict[function].ContainsKey(fixedPitch))
+                possibleInversions = functionsDict[function].Values.ToList().SelectMany(x => x).Where(x => 
+                {
+                    return x[1].PitchValue != x[2].PitchValue && x[2].PitchValue != x[3].PitchValue && x[3].PitchValue != x[1].PitchValue;
+                }).ToList();
+            else
+                possibleInversions = functionsDict[function][fixedPitch];
+
+            int chordsCount = possibleInversions.Count;
             int randomIndex = random.Next(0, chordsCount);
-            Pitch[] chord = functionsDict[function][fixedPitch][randomIndex];
+            Pitch[] chord = possibleInversions[randomIndex];
             
-            for (int i = 0; i < chord.Length; i++)
+            for (int i = 1; i < chord.Length; i++)
             {
                 chord[i] = chord[i].Copy();
                 chord[i].Length = fixedPitch.Length;
             }
+            chord[0] = fixedPitch.Copy();
 
             return chord;
         }
@@ -315,6 +356,28 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
             }
 
             tournamentWinningProbabilities.Add(0);
+        }
+
+        private void AddRemoveSeptimFromFunction(HarmonicFunction function) 
+        {
+            if (function.AddedDegree == null)
+                function.AddedDegree = Degree.VII;
+            else
+                function.AddedDegree = null;
+        }
+
+        private void AddFunctionToDict(HarmonicFunction function, Keys compositionKey, int fixedVoiceIndex)
+        {
+            List<Pitch[]> inversions = function.GetAllCorrectInversions(compositionKey);
+            Dictionary<Pitch, List<Pitch[]>> inversionsDict = new();
+
+            foreach (Pitch[] inversion in inversions)
+                if (inversionsDict.ContainsKey(inversion[fixedVoiceIndex]))
+                    inversionsDict[inversion[fixedVoiceIndex]].Add(inversion);
+                else
+                    inversionsDict.Add(inversion[fixedVoiceIndex].Copy(), new List<Pitch[]> { inversion });
+
+            functionsDict.Add(function, inversionsDict);
         }
 
     }

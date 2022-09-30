@@ -23,7 +23,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
     /// <para> 8. Brak semptymy w dwóch krokach (i w jednym). -> tutaj chyba jakiś wyjątek </para>
     /// <para> 9. Brak dwóch następujących akordów na kwincie. </para>
     /// <para> 10. Poprawny dźwięk w basie (brak kwinty w basie na mocnej części taktu). </para>
-    /// <para> 11. Poprawne zdwojenie (kwinta w basie, jeśli zdwojona, pryma w basie w pierwszym i os   tatnim akordzie). </para>
+    /// <para> 11. Poprawne zdwojenie (kwinta w basie, jeśli zdwojona, pryma w basie w pierwszym i ostatnim akordzie). </para>
     /// <para> 12. Ruch przynajmniej 2 głosów. </para>
     /// <para> 13. Wszystkie głosy w dopuszczalnym zakresie. </para>
     /// <para> 14. Płynne prowadzenie głosów (alt, tenor), brak skoku o zbyt duży interwał. </para>

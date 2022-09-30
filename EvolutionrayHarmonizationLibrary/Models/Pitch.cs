@@ -33,6 +33,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// </summary>
         public PitchLength Length { get; set; }
 
+        public List<Pitch> AllPitchesOnIcuts { get; set; }
+
         /// <summary>
         /// Numer oktawy, w której dźwięk się znajduje.
         /// Oktawa subkontra oznaczona wartością 1.
@@ -40,16 +42,49 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// </summary>
         public int Octave { get; set; }
 
+        public Pitch(List<Pitch> allPitchesOnIcuts, List<PitchInChord> pitchesInChord)
+        {
+            AllPitchesOnIcuts = allPitchesOnIcuts;
+            foreach (Pitch p in allPitchesOnIcuts)
+            {
+                foreach (PitchInChord pInC in pitchesInChord)
+                    if (p.PitchValue == pInC.Pitch.PitchValue && p.Modifier == pInC.Pitch.Modifier)
+                    {
+                        PitchValue = p.PitchValue;
+                        Modifier = p.Modifier;
+                        Length = p.Length;
+                        Octave = p.Octave;
+
+                        return;
+                    }
+            }
+
+            PitchValue = allPitchesOnIcuts[0].PitchValue;
+            Modifier = allPitchesOnIcuts[0].Modifier;
+            Length = allPitchesOnIcuts[0].Length;
+            Octave = allPitchesOnIcuts[0].Octave;
+        }
+
+        public Pitch() { }
 
         public Pitch Copy()
         {
-            return new Pitch
+            Pitch copied = new Pitch
             {
                 PitchValue = PitchValue,
                 Modifier = Modifier,
                 Octave = Octave,
                 Length = Length
             };
+
+            if (AllPitchesOnIcuts != null)
+            {
+                copied.AllPitchesOnIcuts = new();
+                foreach (Pitch p in AllPitchesOnIcuts)
+                    copied.AllPitchesOnIcuts.Add(p.Copy());
+            }
+
+            return copied;
         }
 
         public void ToKey(Keys key)

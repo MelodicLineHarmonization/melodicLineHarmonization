@@ -47,6 +47,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <summary>
         /// Tablica wskazująca mocne części w takcie pod względem istotności. Wartości w takcie liczone są od 1.
         /// Wartość pod indeksem 0 jest najmocniejsza, wartość pod ostatnim indeksem najsłabsza.
+        /// 
+        /// W przypadku harmonizacji modalnej w tablicy przechowywane są wskazania (numery indeksów) na nuty, które są iktusami głównymi. 
         /// </summary>
         public List<double> Downbeats { get; init; }
 
@@ -90,7 +92,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
         public void SaveToFile(string filePath)
         {
-            string serializedClass = JsonConvert.SerializeObject(this);
+            string serializedClass = JsonConvert.SerializeObject(this, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Serialize });
             File.WriteAllText(filePath, serializedClass);
         }
 

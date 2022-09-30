@@ -24,6 +24,11 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// </summary>
         public Degree? AddedDegree { get; set; }
 
+        /// <summary>
+        /// Wskazanie stopni, które mają ulec modyfikacji o pół tonu: true -> w górę, false -> w dół
+        /// </summary>
+        public List<(Degree, bool)> ChangedDegrees { get; set; } = null;
+
 
         /// <summary>
         /// Bazowa funckja zwracająca trójdźwięk zbudowany na stopniu wskazanym przez funkcję.
@@ -32,7 +37,7 @@ namespace EvolutionrayHarmonizationLibrary.Models
         /// <returns></returns>
         public List<PitchInChord> GetPitchesInFunction(Keys key)
         {
-            (List<(Pitches, Modifiers)> keySigns, bool isMoll, Pitches firstPitchInKey) = KeyConverter.KeyToSigns(key);
+            (List<(Pitches, Modifiers)> keySigns, _, Pitches firstPitchInKey) = KeyConverter.KeyToSigns(key);
             
             int firstPitchNumber = GetRealNumberOfPitch((int)firstPitchInKey + (int)Function - 1);
             int secondPitchNumber = GetRealNumberOfPitch(firstPitchNumber + 2);
@@ -40,16 +45,15 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
             Pitch firstPitch = ApplyKeySigns(firstPitchNumber, keySigns);
             Pitch secondPitch = ApplyKeySigns(secondPitchNumber, keySigns);
-            if (isMoll && Function == Degree.V)
-                RaiseBySemitone(secondPitch);
             Pitch thirdPitch = ApplyKeySigns(thirdPitchNumber, keySigns);
+            List<PitchInChord> pitchesInChord;
 
             if (AddedDegree == null)
-                return new List<PitchInChord>
+                pitchesInChord = new List<PitchInChord>
                 {
-                    new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = (Function == Degree.II || Function == Degree.VI) ? 1 : Function == Degree.I ? 3 : 2 },
-                    new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = (Function == Degree.II || Function == Degree.VI) ? 2 : 1 },
-                    new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = Function == Degree.I ? 0 : 1, MaximumOccurencesInChord = (Function == Degree.II || Function == Degree.VI) ? 1 : 2 },
+                    new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 2 },
+                    new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 2 },
+                    new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 2 },
                 };
             else
             {
@@ -60,10 +64,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
 
                     Pitch fourthPitch = ApplyKeySigns(fourthPitchNumber, keySigns);
                     Pitch fifthPitch = ApplyKeySigns(fifthPitchNumber, keySigns);
-                    if (!isMoll)
-                        LowerBySemitone(fifthPitch);
 
-                    return new List<PitchInChord>
+                    pitchesInChord = new List<PitchInChord>
                     {
                         new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 0, MaximumOccurencesInChord = 1 },
                         new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
@@ -77,13 +79,33 @@ namespace EvolutionrayHarmonizationLibrary.Models
                     int fourthPitchNumber = GetRealNumberOfPitch((int)firstPitchNumber + (int)AddedDegree.Value - 1);
                     Pitch fourthPitch = ApplyKeySigns(fourthPitchNumber, keySigns);
 
-                    return new List<PitchInChord>
+                    pitchesInChord = new List<PitchInChord>
                     {
                         new PitchInChord { Pitch = firstPitch, DegreeInChord = Degree.I, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
                         new PitchInChord { Pitch = secondPitch, DegreeInChord = Degree.III, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
                         new PitchInChord { Pitch = thirdPitch, DegreeInChord = Degree.V, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 },
                         new PitchInChord { Pitch = fourthPitch, DegreeInChord = AddedDegree.Value, MinimumOccurencesInChord = 1, MaximumOccurencesInChord = 1 }
                     };
+                }
+            }
+
+            if (ChangedDegrees != null)
+                ModifyPitchesInChord(pitchesInChord);
+            
+            return pitchesInChord;
+        }
+
+        private void ModifyPitchesInChord(List<PitchInChord> pitchesInChord)
+        {
+            foreach ((Degree, bool) changedDegree in ChangedDegrees)
+            {
+                PitchInChord pitchToModify = pitchesInChord.Find(p => p.DegreeInChord == changedDegree.Item1);
+                if (pitchToModify != null)
+                {
+                    if (changedDegree.Item2)
+                        RaiseBySemitone(pitchToModify.Pitch);
+                    else
+                        LowerBySemitone(pitchToModify.Pitch);
                 }
             }
         }
@@ -149,7 +171,8 @@ namespace EvolutionrayHarmonizationLibrary.Models
             return new HarmonicFunction
             {
                 Function = Function,
-                AddedDegree = AddedDegree
+                AddedDegree = AddedDegree,
+                ChangedDegrees = ChangedDegrees?.ToList()
             };
         }
 
@@ -227,6 +250,25 @@ namespace EvolutionrayHarmonizationLibrary.Models
         public override int GetHashCode()
         {
             return HashCode.Combine(Function, AddedDegree);
+        }
+
+
+        public static bool IsChordMinor(List<PitchInChord> pichtesInChord)
+        {
+            if (Interval.minorThirdSemitones.Contains(Interval.GetPitchesDifferenceInSemitones(pichtesInChord[^2].Pitch, pichtesInChord[^1].Pitch)) &&
+                Interval.majorThirdSemitones.Contains(Interval.GetPitchesDifferenceInSemitones(pichtesInChord[^3].Pitch, pichtesInChord[^2].Pitch)))
+                return true;
+
+            return false;
+        }
+
+        public static bool IsChordMajor(List<PitchInChord> pichtesInChord)
+        {
+            if (Interval.majorThirdSemitones.Contains(Interval.GetPitchesDifferenceInSemitones(pichtesInChord[^2].Pitch, pichtesInChord[^1].Pitch)) &&
+                Interval.minorThirdSemitones.Contains(Interval.GetPitchesDifferenceInSemitones(pichtesInChord[^3].Pitch, pichtesInChord[^2].Pitch)))
+                return true;
+
+            return false;
         }
     }
 }
