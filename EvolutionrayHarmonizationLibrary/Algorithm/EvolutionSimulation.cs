@@ -14,7 +14,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm
     {
         private readonly int eliteSize = 3;
         private readonly int tournamentSize = 4;
-        private static double septimChordProbability = 0.164;
+        private readonly double septimChordProbability = 0.164;
         private readonly double crossoverProbability = 0.8;
         private readonly double basicWorstTournamentParticipantProbability = 0.2;
         private readonly double mutationFractionProbability = 1.1;

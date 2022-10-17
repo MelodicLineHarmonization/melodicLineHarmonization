@@ -122,8 +122,8 @@ namespace EvolutionaryHarmonization
                 (new HarmonicFunction() { Function = Degree.IV }),
                 (new HarmonicFunction() { Function = Degree.VII, ChangedDegrees = new() { (Degree.I, false) } }),
                 (new HarmonicFunction() { Function = Degree.II }),
-                (new HarmonicFunction() { Function = Degree.III, ChangedDegrees = new() { (Degree.III, false) } }),
-                (new HarmonicFunction() { Function = Degree.III, ChangedDegrees = new() { (Degree.III, false) } }),
+                (new HarmonicFunction() { Function = Degree.VII, ChangedDegrees = new() { (Degree.I, false) } }),
+                (new HarmonicFunction() { Function = Degree.V, ChangedDegrees = new() { (Degree.III, false) } }),
                 (new HarmonicFunction() { Function = Degree.VI }),
                 (new HarmonicFunction() { Function = Degree.II }),
             };

@@ -22,7 +22,7 @@ namespace EvolutionaryHarmonization
 
         static void Main(string[] args) 
         {
-            CreateResultsForExamples(ModalHarmonizationExamples.AllExamplesCreateFunctions);
+            CreateResultsForExamples(new List<Func<BaseComposition>>() { ModalHarmonizationExamples.ModalHarmonizationKyrieXI, ModalHarmonizationExamples.ModalHarmonizationKyrieIX });
 
             //BaseComposition baseComposition = ModalHarmonizationExamples.ModalHarmonizationSanctusXIV();
             //if (baseComposition != null)
@@ -67,15 +67,13 @@ namespace EvolutionaryHarmonization
             {
                 BaseComposition bc = compositionExample();
                 times[bc.Name] = new();
-                foreach (int seed in seeds)
-                {
-                    Stopwatch stopwatch = new();
-                    stopwatch.Start();
-                    RunSimulation(bc, seed, false);
-                    stopwatch.Stop();
-                    times[bc.Name].Add(stopwatch.Elapsed);
-                    Console.WriteLine($"Calculated in {stopwatch.Elapsed}");
-                }
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+                RunSimulation(bc, showLogs: true);
+                stopwatch.Stop();
+                times[bc.Name].Add(stopwatch.Elapsed);
+                Console.WriteLine($"Calculated in {stopwatch.Elapsed}");
+                
             }
 
             string timesCsv = JsonConvert.SerializeObject(times, new KeyValuePairConverter());
@@ -89,7 +87,7 @@ namespace EvolutionaryHarmonization
             
             Console.WriteLine($"Calculating example {baseComposition.Name} for seed {seed.Value}");
 
-            EvolutionSimulation evolutionSimulation = new(new SimpleRandom(seed.Value), mutationFractionProbability: 1, basicWorstTournamentParticipantProbability: 0.4,  crossoverProbability: 0.8, useSeptimChordsInModal: false);
+            EvolutionSimulation evolutionSimulation = new(new SimpleRandom(seed.Value), mutationFractionProbability: 1, basicWorstTournamentParticipantProbability: 0.4,  crossoverProbability: 0.8, useSeptimChordsInModal: true);
             evolutionSimulation.CreateStartPopulation(baseComposition, populationCount);
 
             if (showLogs)
@@ -126,7 +124,7 @@ namespace EvolutionaryHarmonization
             var simulationParameters = evolutionSimulation.GetSimulationParameters();
             for (int i = 0; i < evolutionSimulation.SimulationStatistics[^1].BestCompositions.Count; i++)
             {
-                //evolutionSimulation.SimulationStatistics[^1].BestCompositions[i].SaveToFile($"{baseComposition.Name}Results/{seed.Value}/{baseComposition.Name}{i + 1}.json");
+                evolutionSimulation.SimulationStatistics[^1].BestCompositions[i].SaveToFile($"{baseComposition.Name}Results/{seed.Value}/{baseComposition.Name}{i + 1}.json");
                 string csvString = SimulationStatisticsExtension.csvStatisticsHeader + evolutionSimulation.SimulationStatistics.CreateCsvString(seed.Value, populationCount, 4, 3, simulationParameters.crossoverProbability, simulationParameters.mutationFractionProbability, simulationParameters.basicWorstTournamentParticipantProbability);
                 File.WriteAllText($"{baseComposition.Name}Results/{seed.Value}/{baseComposition.Name}{i + 1}.csv", csvString);
             }

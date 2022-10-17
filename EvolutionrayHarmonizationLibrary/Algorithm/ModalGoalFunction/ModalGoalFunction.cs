@@ -41,7 +41,7 @@ namespace EvolutionrayHarmonizationLibrary.Algorithm.ModalGoalFunction
         //quality
         private static readonly int chordConnectionMultiplier = 20;
         private static readonly int correctMoveThirdInBass = 20;
-        private static readonly int isSeptimChordMultiplier = 100; // w sumie to ile?
+        private static readonly int isSeptimChordMultiplier = 100;
 
 
         private static readonly double C = 0.5;
